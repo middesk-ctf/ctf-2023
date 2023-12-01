@@ -1,0 +1,77 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: ctf-prod
+  name: slack-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: slack-app
+  template:
+    metadata:
+      labels:
+        app: slack-app
+    spec:
+      containers:
+      - name: slack-app
+        image: us-central1-docker.pkg.dev/middesk-ctf-2023/ctf-bot/app:v0.3
+        ports:
+        - containerPort: 3000
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 250m
+          limits:
+            memory: 256Mi
+            cpu: 500m
+        envFrom:
+        - configMapRef:
+            name: slack-app
+        - secretRef:
+            name: slack-app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: ctf-prod
+  name: slack-app
+spec:
+  selector:
+    app: slack-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: NodePort
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: ctf-prod
+  name: slack-app
+data:
+  LOGLEVEL: DEBUG
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: ctf-prod
+  name: slack-app-elb
+spec:
+  tls:
+  - hosts:
+    - "slack-bot.ctf.middesk.com"
+    secretName: wildcard-ctf-middesk-com
+  rules:
+  - host: "slack-bot.ctf.middesk.com"
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: slack-app
+            port:
+              number: 80

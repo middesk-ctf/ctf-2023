@@ -3,13 +3,14 @@ import os
 
 from dotenv import load_dotenv
 from slack_bolt import App
+from slack_bolt.adapter.flask import SlackRequestHandler
+from flask import Flask, request, make_response
 
 
 load_dotenv(dotenv_path='.env.local')
 
 LOGLEVEL = os.environ.get('LOGLEVEL', 'INFO').upper()
 logging.basicConfig(level=LOGLEVEL)
-
 
 app = App()
 
@@ -76,6 +77,22 @@ def handle_restart(slack_user_id):
 def handle_capture(slack_user_id, flag):
     pass
 
+
+flask_app = Flask("Middesk CTF Bot")
+handler = SlackRequestHandler(app)
+
+
+@flask_app.route("/", methods=["GET"])
+def get_root():
+    return make_response("OK", 200)
+
+
+@flask_app.route("/slack/events", methods=["POST"])
+def slack_events():
+    return handler.handle(request)
+
+
 if __name__ == "__main__":
     # POST http://localhost:3000/slack/events
-    app.start(port=3000)
+    debug = LOGLEVEL == "DEBUG"
+    flask_app.run(debug=debug, port=3000)
