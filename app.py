@@ -69,7 +69,7 @@ def ctf_command(ack, command, client, say):
     args = command["text"].split(" ")
     if not args:
         return dm_unrecognized_command(user_id, client)
-    
+
     match args[0]:
         case "join":
             return handle_join(args[1:], user_id, client)
@@ -124,25 +124,30 @@ MIN_POINTS = 1
 def calculate_level_points(standings):
     # Standings is a list of player IDs in the order
     # in which they have completed the level.
-    return [(player_id, max(MIN_POINTS, MAX_POINTS-i)) for (i, player_id) in enumerate(standings)]
+    return [
+        (player_id, max(MIN_POINTS, MAX_POINTS - i))
+        for (i, player_id) in enumerate(standings)
+    ]
 
 
 def handle_standings(args, user_id, client):
     # There should be at most one argument specifying a level.
     if len(args) > 1:
         return dm_unrecognized_command(user_id, client)
-    
-    levels_collection = db.collection('levels')
-    
+
+    levels_collection = db.collection("levels")
+
     if len(args) == 1:
         level = args[0]
         level_doc = levels_collection.document(level).get()
 
         if not level_doc.exists:
             return dm_user(
-                user_id, client, f"No such level: {level}. Valid levels are 1 through 5."
+                user_id,
+                client,
+                f"No such level: {level}. Valid levels are 1 through 5.",
             )
-        
+
         standings = level_doc.get("standings")
         ordered_player_points = calculate_level_points(standings)
 
@@ -150,16 +155,18 @@ def handle_standings(args, user_id, client):
         if ordered_player_points:
             message = f"Standings for Level {level}:"
     else:
-        player_points = defaultdict(int) # Maps player_id to points (default 0)
+        player_points = defaultdict(int)  # Maps player_id to points (default 0)
         for doc in levels_collection.list_documents():
             level_standings = doc.get().get("standings")
             level_points = calculate_level_points(level_standings)
-            
+
             for player_id, level_points in level_points:
                 player_points[player_id] += level_points
-        
+
         ordered_player_points = sorted(
-            player_points.items(), key=lambda item: item[1], reverse=True,
+            player_points.items(),
+            key=lambda item: item[1],
+            reverse=True,
         )
 
         message = "No standings yet!"
@@ -168,9 +175,8 @@ def handle_standings(args, user_id, client):
 
     for player_id, points in ordered_player_points:
         message += f"\n<@{player_id}> ({points} Points)"
-    
-    dm_user(user_id, client, message)
 
+    dm_user(user_id, client, message)
 
 
 def handle_start(slack_user_id):
