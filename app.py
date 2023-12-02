@@ -37,16 +37,18 @@ def hello_from_ctf_bot(message, say):
     say(f"Hey there <@{message['user']}>!")
 
 
+COMMANDS = [
+    "join",
+    "standings [LEVEL]",
+    "start",
+    "restart",
+    "capture FLAG",
+]
+
+
 def ctf_usage():
-    commands = [
-        "join",
-        "standings [LEVEL]",
-        "start",
-        "restart",
-        "capture FLAG"
-    ]
     usage = "Valid commands are:"
-    for command in commands:
+    for command in COMMANDS:
         usage += f"\n- `/ctf {command}`"
     return usage
 
@@ -57,17 +59,17 @@ def dm_unrecognized_command(user_id, client):
 
 @app.command("/ctf")
 def ctf_command(ack, command, client, say):
-    ack() # Acknowledge the command request.
+    ack()  # Acknowledge the command request.
 
-    print(f'Got Command:\n{command}\n')
+    print(f"Got Command:\n{command}\n")
 
-    user_id = command['user_id']
+    user_id = command["user_id"]
 
-    args = command['text'].split(' ')
+    args = command["text"].split(" ")
     if not args:
         return dm_unrecognized_command(user_id, client)
-    
-    if args[0] == 'join':
+
+    if args[0] == "join":
         return handle_join(args[1:], user_id, client)
 
     return dm_unrecognized_command(user_id, client)
@@ -77,32 +79,38 @@ def handle_join(args, user_id, client):
     if args:
         # There should be no arguments.
         return dm_unrecognized_command(user_id, client)
-    
+
     # Player IDs are Slack User IDs.
     player_id = user_id
 
     # Firestore: Check if the user already exists
-    players_collection = db.collection('players')
+    players_collection = db.collection("players")
     player_doc = players_collection.document(player_id).get()
 
     if player_doc.exists:
-        return dm_user(user_id, client, f"Welcome back <@{user_id}>! You are already registered.")
+        return dm_user(
+            user_id, client, f"Welcome back <@{user_id}>! You are already registered."
+        )
 
     # Fetch user info from Slack
     user_info = client.users_info(user=user_id)
-    user_email = user_info['user']['profile']['email']
+    user_email = user_info["user"]["profile"]["email"]
 
     # Add new player to Firestore
-    players_collection.document(user_id).set({
-        "id": user_id,
-        "email": user_email,
-        "joined_at": datetime.now(tz=timezone.utc).isoformat(),
-        "current_level": 0,
-        "deployment": {},
-        "secret_flag": ""
-    })
-    
-    dm_user(user_id, client, f"Welcome <@{user_id}>! You have been successfully registered.")
+    players_collection.document(user_id).set(
+        {
+            "id": user_id,
+            "email": user_email,
+            "joined_at": datetime.now(tz=timezone.utc).isoformat(),
+            "current_level": 0,
+            "deployment": {},
+            "secret_flag": "",
+        }
+    )
+
+    dm_user(
+        user_id, client, f"Welcome <@{user_id}>! You have been successfully registered."
+    )
 
 
 def handle_standings(level=None):
