@@ -58,3 +58,13 @@ metadata:
   name: filedesk-app
 data:
   LOGLEVEL: DEBUG
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: ${namespace}
+  name: filedesk-app
+type: Opaque
+data:
+  ADMIN_PASSWORD: ${encoded_admin_password}
+  SECRET_FLAG: ${encoded_secret_flag}
