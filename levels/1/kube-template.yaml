@@ -1,0 +1,60 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ${namespace}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: ${namespace}
+  name: filedesk-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: filedesk-app
+  template:
+    metadata:
+      labels:
+        app: filedesk-app
+    spec:
+      containers:
+      - name: filedesk-app
+        image: us-central1-docker.pkg.dev/middesk-ctf-2023/ctf-bot/level-1-app:v0.1
+        ports:
+        - containerPort: 3000
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 250m
+          limits:
+            memory: 256Mi
+            cpu: 500m
+        envFrom:
+        - configMapRef:
+            name: filedesk-app
+        - secretRef:
+            name: filedesk-app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: ${namespace}
+  name: filedesk-app
+spec:
+  selector:
+    app: filedesk-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: NodePort
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: ${namespace}
+  name: filedesk-app
+data:
+  LOGLEVEL: DEBUG
