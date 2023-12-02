@@ -17,7 +17,7 @@ workers: fmt
 		--source=./workers \
 		--entry-point=provision_level \
 		--trigger-topic=level-provisioner \
-		--set-env-vars=KUBE_URL=$$KUBE_URL,KUBE_SA_TOKEN=$$KUBE_SA_TOKEN
+		--update-env-vars=KUBE_URL=$$KUBE_URL,KUBE_SA_TOKEN=$$KUBE_SA_TOKEN
 
 build:
 	docker build --platform linux/amd64 -t us-central1-docker.pkg.dev/middesk-ctf-2023/ctf-bot/app:$(VERSION) .
