@@ -7,9 +7,9 @@ from slack_bolt.adapter.flask import SlackRequestHandler
 from flask import Flask, request, make_response
 
 
-load_dotenv(dotenv_path='.env.local')
+load_dotenv(dotenv_path=".env.local")
 
-LOGLEVEL = os.environ.get('LOGLEVEL', 'INFO').upper()
+LOGLEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
 logging.basicConfig(level=LOGLEVEL)
 
 app = App()
@@ -29,7 +29,7 @@ def ctf_usage():
         "standings [LEVEL]",
         "start",
         "restart",
-        "capture [FLAG]"
+        "capture [FLAG]",
     ]
     usage = "Valid commands are:"
     for command in commands:
@@ -43,36 +43,43 @@ def unrecognized_command():
 
 @app.command("/ctf")
 def ctf_command(ack, command, say):
-    ack() # Acknowledge the command request.
+    ack()  # Acknowledge the command request.
 
-    print(f'\n{command}\n')
+    print(f"\n{command}\n")
 
-    text = command['text']
-    if text == 'join':
-        user_id = command['user_id']
+    text = command["text"]
+    if text == "join":
+        user_id = command["user_id"]
         # Add user_id to firestore collection of players.
-        say(f"Hi, <@{user_id}>. You've been added to the CTF competition! (not really)\nI'll notify you when the 1st level is ready!")
-    elif text == 'standings':
+        say(
+            f"Hi, <@{user_id}>. You've been added to the CTF competition! (not really)\nI'll notify you when the 1st level is ready!"
+        )
+    elif text == "standings":
         say(f"The CTF competition has not yet started. Please check back later!")
-    elif text.startswith('standings '):
+    elif text.startswith("standings "):
         say(f"The CTF competition has not yet started. Please check back later!")
-    elif text.startswith('capture '):
+    elif text.startswith("capture "):
         say(f"The CTF competition has not yet started. Please check back later!")
     else:
         say(unrecognized_command())
+
 
 # TODO
 def handle_join(slack_user_id):
     pass
 
+
 def handle_standings(level=None):
     pass
+
 
 def handle_start(slack_user_id):
     pass
 
+
 def handle_restart(slack_user_id):
     pass
+
 
 def handle_capture(slack_user_id, flag):
     pass
