@@ -1,0 +1,71 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ${namespace}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app
+  namespace: ${namespace}
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: hello-kubernetes
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test
+  namespace: ${namespace}
+  labels:
+    app.kubernetes.io/name: hello-kubernetes
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: hello-kubernetes
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: hello-kubernetes
+    spec:
+      containers:
+        - name: hello-kubernetes
+          image: "paulbouwer/hello-kubernetes:1.10"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          env:
+          - name: MESSAGE
+            value: "hi ${player['email']}"
+          - name: KUBERNETES_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: KUBERNETES_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: KUBERNETES_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: CONTAINER_IMAGE
+            value: "paulbouwer/hello-kubernetes:1.10"

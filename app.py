@@ -1,14 +1,13 @@
-from collections import defaultdict
-from datetime import datetime, timezone
 import logging
 import os
+from collections import defaultdict
+from datetime import datetime, timezone
 
 from dotenv import load_dotenv
+from flask import Flask, make_response, request
+from google.cloud import firestore
 from slack_bolt import App
 from slack_bolt.adapter.flask import SlackRequestHandler
-from flask import Flask, request, make_response
-from google.cloud import firestore
-
 
 load_dotenv(dotenv_path=".env.local")
 

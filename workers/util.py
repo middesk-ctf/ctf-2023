@@ -1,8 +1,9 @@
-from cloudevents.http import CloudEvent
 import base64
 import json
 import os
+
 import kr8s
+from cloudevents.http import CloudEvent
 
 
 def get_pubsub_json_payload(cloud_event: CloudEvent):

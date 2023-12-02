@@ -3,9 +3,10 @@ VERSION=latest
 all:
 
 fmt:
+	isort .
 	black .
 
-worker: fmt 
+workers: fmt 
 	export KUBE_URL=https://`gcloud --project=middesk-ctf-2023 container clusters describe middesk-ctf-2023 --region=us-central1 --format=json | jq -r '.endpoint'`; \
 	export KUBE_SA_TOKEN=`kubectl get secrets -n default --context=gke_middesk-ctf-2023_us-central1_middesk-ctf-2023 cloud-functions-token -ojson | jq .data.token -r | base64 -d`; \
 	gcloud --project=middesk-ctf-2023 functions deploy \
