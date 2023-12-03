@@ -1,11 +1,14 @@
+import base64
+import json
 import logging
 import os
+import time
 from collections import defaultdict
 from datetime import datetime, timezone
 
 from dotenv import load_dotenv
 from flask import Flask, make_response, request
-from google.cloud import firestore
+from google.cloud import firestore, pubsub_v1
 from slack_bolt import App
 from slack_bolt.adapter.flask import SlackRequestHandler
 
@@ -13,6 +16,25 @@ load_dotenv(dotenv_path=".env.local")
 
 LOGLEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
 logging.basicConfig(level=LOGLEVEL)
+
+CTF_ADMIN_PLAYER_IDS = set(
+    [
+        "U01A8GBSEF5",  # Stewart Park
+        "U03U0ELF3UH",  # Josh Hawn
+    ]
+)
+
+GOOGLE_CLOUD_PROJECT = os.environ.get("GOOGLE_CLOUD_PROJECT", "middesk-ctf-2023")
+LEVEL_PROVISIONER_PUBSUB_TOPIC_ID = os.environ.get(
+    "LEVEL_PROVISIONER_PUBSUB_TOPIC_ID", "level-provisioner"
+)
+
+# Initialize Pub/Sub publisher client.
+publisher = pubsub_v1.PublisherClient()
+topic_path = publisher.topic_path(
+    GOOGLE_CLOUD_PROJECT, LEVEL_PROVISIONER_PUBSUB_TOPIC_ID
+)
+
 
 # Initialize Firestore
 db = firestore.Client()
@@ -28,6 +50,31 @@ def dm_channel_id(user_id, client):
 def dm_user(user_id, client, message):
     channel_id = dm_channel_id(user_id, client)
     client.chat_postMessage(channel=channel_id, text=message)
+
+
+def dm_user_error(user_id, client):
+    return dm_user(
+        user_id,
+        client,
+        "An error occurred! Please ping one of the following admins for assistance:\n"
+        f"{', '.join([f'@<{user_id}>' for user_id in CTF_ADMIN_PLAYER_IDS])}",
+    )
+
+
+# Admin passwords always start with 'ctf' and contain any of the following
+# characters: A-Z, a-z, 0-9, `+`, and `/`.
+def make_admin_password():
+    # Generate 9 random bytes
+    encoded_bytes = base64.b64encode(os.urandom(9))
+    return "ctf" + encoded_bytes.decode("utf-8")
+
+
+# Secret Flags always start with 'FLAG' and containe any of the following
+# characters: A-Z, a-z, 0-9, `+`, and `/`.
+def make_secret_flag():
+    # Generate 24 random bytes.
+    encoded_bytes = base64.b64encode(os.urandom(24))
+    return "FLAG" + encoded_bytes.decode("utf-8")
 
 
 # Listens to incoming messages that contain "ctf-bot"
@@ -74,6 +121,10 @@ def ctf_command(ack, command, client, say):
             return handle_join(args[1:], user_id, client)
         case "standings":
             return handle_standings(args[1:], user_id, client)
+        case "start":
+            return handle_start(args[1:], user_id, client)
+        case "restart":
+            return handle_restart(args[1:], user_id, client)
         case _:
             return dm_unrecognized_command(user_id, client)
 
@@ -106,7 +157,9 @@ def handle_join(args, user_id, client):
             "email": user_email,
             "joined_at": datetime.now(tz=timezone.utc).isoformat(),
             "current_level": 0,
-            "deployment": {},
+            "deployment": {
+                "status": None,
+            },
             "secret_flag": "",
         }
     )
@@ -178,12 +231,160 @@ def handle_standings(args, user_id, client):
     dm_user(user_id, client, message)
 
 
-def handle_start(slack_user_id):
-    pass
+def handle_start(args, user_id, client, restart=False):
+    if args:
+        # There should be no arguments.
+        return dm_unrecognized_command(user_id, client)
+
+    player_id = user_id
+
+    # Get player document from firestore.
+    players_collection = db.collection("players")
+    player_doc = players_collection.document(player_id).get()
+
+    if not player_doc.exists:
+        return dm_user(user_id, client, "Please join first by entering `/ctf join`!")
+
+    player_doc = player_doc.to_dict()
+
+    current_deployment = player_doc.get("deployment", {})
+    current_deployment_status = current_deployment.get("status")
+    if current_deployment_status is not None:
+        return dm_user(
+            user_id,
+            client,
+            f"You have an existing deployment with status: {current_deployment_status}.\nYou cannot start the next level yet. Please try again momentarily.",
+        )
+
+    current_level = player_doc.get("current_level", 0)
+    next_level = current_level if restart else (current_level + 1)
+    if next_level > 5:
+        return dm_user(user_id, client, "You've already completed all the levels!")
+
+    # Lookup the next level.
+    levels_collection = db.collection("levels")
+    # Should be ok to assume the next level exists.
+    level_doc = levels_collection.document(str(next_level)).get().to_dict()
+
+    # Make sure this level has started first!
+    #    (except for admin players)
+    starts_at = datetime.fromisoformat(level_doc["start_at"])
+    current_time = datetime.now(tz=timezone.utc)
+    delta_seconds = (starts_at - current_time).total_seconds()
+    if delta_seconds > 0 and player_id not in CTF_ADMIN_PLAYER_IDS:
+        hours = int(delta_seconds // 3600)
+        minutes = int((delta_seconds % 3600) // 60)
+        seconds = int(delta_seconds % 60)
+        return dm_user(
+            user_id,
+            client,
+            f"Level {next_level} doesn't start for another {hours}hr {minutes}min {seconds}s. :stopwatch:\nTake a break! :tropical_drink:",
+        )
+
+    # Prepare the pub/sub message.
+    admin_password = make_admin_password()
+    secret_flag = make_secret_flag()
+
+    message_data = {
+        "action": "create",
+        "player_id": player_id,
+        "level": next_level,
+        "variables": {
+            "encoded_admin_password": base64.b64encode(
+                admin_password.encode("utf-8")
+            ).decode(),
+            "encoded_secret_flag": base64.b64encode(
+                secret_flag.encode("utf-8")
+            ).decode(),
+        },
+    }
+
+    # Send the message.
+    try:
+        message = json.dumps(message_data).encode("utf-8")
+        # Block until the message is published, returning the message ID.
+        message_id = publisher.publish(topic_path, message).result()
+        print(f"Message published with ID: {message_id}")
+    except Exception as e:
+        # Handle any exceptions that occur during publish
+        print(f"An error occurred: {e}")
+        return dm_user_error(user_id, client)
+
+    players_collection.document(player_id).update(
+        {
+            "deployment": {
+                "status": "pending",
+            },
+            "current_level": next_level,
+            "secret_flag": secret_flag,
+        }
+    )
+
+    return dm_user(
+        user_id,
+        client,
+        "Your challenge is pending deployment! :kubernetes:\nPlease wait for it to be ready!",
+    )
 
 
-def handle_restart(slack_user_id):
-    pass
+def handle_restart(args, user_id, client):
+    if args:
+        # There should be no arguments.
+        return dm_unrecognized_command(user_id, client)
+
+    player_id = user_id
+
+    # Get player document from firestore.
+    players_collection = db.collection("players")
+    player_doc = players_collection.document(player_id).get()
+
+    if not player_doc.exists:
+        return dm_user(user_id, client, "Please join first by entering `/ctf join`!")
+
+    player_doc = player_doc.to_dict()
+
+    current_deployment = player_doc.get("deployment", {})
+    current_deployment_status = current_deployment.get("status")
+
+    # There should be an existing deployment.
+    if current_deployment_status is None:
+        return dm_user(
+            user_id,
+            client,
+            f"You don't currently have a deployment!\nYou can start the next by entering `/ctf start`.",
+        )
+
+    # Send a pub/sub message to destroy the current deployment for the user.
+    message_data = {
+        "action": "destroy",
+        "player_id": player_id,
+    }
+
+    # Send the message.
+    try:
+        message = json.dumps(message_data).encode("utf-8")
+        # Block until the message is published, returning the message ID.
+        message_id = publisher.publish(topic_path, message).result()
+        print(f"Message published with ID: {message_id}")
+    except Exception as e:
+        # Handle any exceptions that occur during publish
+        print(f"An error occurred: {e}")
+        return dm_user_error(user_id, client)
+
+    dm_user(user_id, client, "Waiting for your current deployment to be destroyed ...")
+
+    time.sleep(1)
+    for i in range(60):
+        print(f"[{i}/60] Waiting for player {player_id} deployment to be destroyed...")
+        player_doc = players_collection.document(player_id).get().to_dict()
+        if player_doc.get("deployment", {}).get("status") is None:
+            break
+        time.sleep(1)
+
+    dm_user(
+        user_id, client, "Deployment destroyed! :boom:\nCreating new deployment ..."
+    )
+    handle_start([], user_id, client, restart=True)
 
 
 def handle_capture(slack_user_id, flag):

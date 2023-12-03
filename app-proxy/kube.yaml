@@ -5,7 +5,7 @@ metadata:
   namespace: ctf-prod
   name: app-proxy
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: app-proxy
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: us-central1-docker.pkg.dev/middesk-ctf-2023/ctf-bot/proxy:v0.4
+        image: us-central1-docker.pkg.dev/middesk-ctf-2023/ctf-bot/proxy:v0.5
         ports:
         - containerPort: 80
         resources:

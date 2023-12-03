@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: filedesk-app
-        image: us-central1-docker.pkg.dev/middesk-ctf-2023/ctf-bot/level-1-app:v0.1
+        image: us-central1-docker.pkg.dev/middesk-ctf-2023/ctf-bot/level-1-app:v0.2
         ports:
         - containerPort: 3000
         resources:
@@ -41,7 +41,7 @@ apiVersion: v1
 kind: Service
 metadata:
   namespace: ${namespace}
-  name: filedesk-app
+  name: app
 spec:
   selector:
     app: filedesk-app

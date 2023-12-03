@@ -14,4 +14,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 3000
 
 # Run app.py when the container launches
-CMD ["gunicorn", "-w", "4", "-b", ":3000", "app:flask_app"]
+CMD ["gunicorn", "-w", "4", "-b", ":3000", "app:app"]

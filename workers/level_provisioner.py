@@ -56,6 +56,8 @@ def provision_level(cloud_event: CloudEvent) -> None:
             {
                 "deployment": {
                     "status": "creating",
+                    "namespace": namespace,
+                    "app_url": app_url,
                 },
             }
         )
@@ -66,24 +68,19 @@ def provision_level(cloud_event: CloudEvent) -> None:
             except Exception as e:
                 print(e)
 
-        player_doc.update(
-            {
-                "deployment": {
-                    "status": "ready",
-                    "namespace": namespace,
-                    "app_url": app_url,
-                },
-            }
-        )
-
         # Wait until the service is actually running.
         time.sleep(1)
         for i in range(300):
             print(f"[{i}/300] Waiting for {app_url} to come online...")
-            if requests.get(app_url).status_code < 400:
-                break
+            try:
+                if requests.get(app_url).status_code < 400:
+                    break
+            except Exception as e:
+                print(e)
             time.sleep(1)
         print(f"{app_url} is online!")
+
+        player_doc.update({"deployment.status": "ready"})
 
         dm_user(
             player_id,
@@ -91,16 +88,19 @@ def provision_level(cloud_event: CloudEvent) -> None:
             f"🤖 Your challenge (Level {level}) is ready at {app_url} . 😈 Go crazy!",
         )
     elif action == "destroy":
+        player_doc.update({"deployment.status": "deleting"})
+
+        try:
+            Namespace.get(player["deployment"]["namespace"]).delete()
+        except Exception as e:
+            print(e)
+
         player_doc.update(
             {
                 "deployment": {
-                    "status": "deleting",
-                },
+                    "status": None,
+                }
             }
         )
-
-        Namespace.get(player["deployment"]["namespace"]).delete()
-
-        player_doc.update({"deployment": {}})
     else:
         raise Exception(f"unknown action: {action}")
