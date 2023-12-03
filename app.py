@@ -493,7 +493,7 @@ def update_player_level(transaction, player_ref, level_ref):
     player_id = player_doc.get("id")
     standings = level_doc.get("standings")
     # It shouldn't be possible, but add this check anyway.
-    if player_id not in standings:
+    if player_id not in standings and player_id not in CTF_ADMIN_PLAYER_IDS:
         standings.append(player_id)
 
     transaction.update(level_ref, {"standings": standings})
