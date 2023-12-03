@@ -64,8 +64,8 @@ def dm_user_error(user_id, client):
 # Admin passwords always start with 'ctf' and contain any of the following
 # characters: A-Z, a-z, 0-9, `+`, and `/`.
 def make_admin_password():
-    # Generate 9 random bytes
-    encoded_bytes = base64.b64encode(os.urandom(9))
+    # Generate 6 random bytes
+    encoded_bytes = base64.b64encode(os.urandom(6))
     return "ctf" + encoded_bytes.decode("utf-8")
 
 

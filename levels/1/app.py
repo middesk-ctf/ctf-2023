@@ -61,8 +61,8 @@ def login():
         if i >= len(ADMIN_PASSWORD) or char != ADMIN_PASSWORD[i]:
             return jsonify({"message": "Incorrect password"}), 401
         # Password verification needs to be slow so that it's harder to
-        # brute force, so sleep for 100ms after each character is verified.
-        time.sleep(0.1)
+        # brute force, so sleep for 50ms after each character is verified.
+        time.sleep(0.5)
 
     if len(password) < len(ADMIN_PASSWORD):
         return jsonify({"message": "Incorrect password"}), 401

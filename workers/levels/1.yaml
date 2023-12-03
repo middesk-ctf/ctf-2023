@@ -21,15 +21,15 @@ spec:
     spec:
       containers:
       - name: filedesk-app
-        image: us-central1-docker.pkg.dev/middesk-ctf-2023/ctf-bot/level-1-app:v0.2
+        image: us-central1-docker.pkg.dev/middesk-ctf-2023/ctf-bot/level-1-app:v0.8
         ports:
         - containerPort: 3000
         resources:
           requests:
-            memory: 128Mi
-            cpu: 250m
+            memory: 512Mi
+            cpu: 256m
           limits:
-            memory: 256Mi
+            memory: 1024Mi
             cpu: 500m
         envFrom:
         - configMapRef:
