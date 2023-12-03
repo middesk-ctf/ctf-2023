@@ -1,0 +1,12 @@
+/.bundle
+/.env
+/.env.local
+/.env.test
+/.git
+/data
+/log
+/Makefile
+/node_modules
+/storage
+/spec
+/tmp

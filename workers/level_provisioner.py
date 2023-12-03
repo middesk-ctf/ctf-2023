@@ -99,7 +99,9 @@ def provision_level(cloud_event: CloudEvent) -> None:
             {
                 "deployment": {
                     "status": None,
-                }
+                },
+                "secret_flag": None,
+                "admin_password": None,
             }
         )
     else:

@@ -92,6 +92,8 @@ COMMANDS = [
     "capture FLAG",
 ]
 
+MAX_LEVEL = 1  # Set this to the number of levels currenty implemented.
+
 
 def ctf_usage():
     usage = "Valid commands are:"
@@ -117,14 +119,20 @@ def ctf_command(ack, command, client, say):
         return dm_unrecognized_command(user_id, client)
 
     match args[0]:
+        case "help":
+            return dm_user(user_id, client, ctf_usage())
         case "join":
             return handle_join(args[1:], user_id, client)
         case "standings":
             return handle_standings(args[1:], user_id, client)
         case "start":
             return handle_start(args[1:], user_id, client)
+        case "destroy":
+            return handle_destroy(args[1:], user_id, client)
         case "restart":
             return handle_restart(args[1:], user_id, client)
+        case "capture":
+            return handle_capture(args[1:], user_id, client)
         case _:
             return dm_unrecognized_command(user_id, client)
 
@@ -156,16 +164,19 @@ def handle_join(args, user_id, client):
             "id": user_id,
             "email": user_email,
             "joined_at": datetime.now(tz=timezone.utc).isoformat(),
-            "current_level": 0,
+            "current_level": 1,
             "deployment": {
                 "status": None,
             },
-            "secret_flag": "",
+            "secret_flag": None,
+            "admin_password": None,
         }
     )
 
     dm_user(
-        user_id, client, f"Welcome <@{user_id}>! You have been successfully registered."
+        user_id,
+        client,
+        f"Welcome <@{user_id}>! You have been successfully registered.\nEnter `/ctf start` to start the first level!",
     )
 
 
@@ -231,7 +242,7 @@ def handle_standings(args, user_id, client):
     dm_user(user_id, client, message)
 
 
-def handle_start(args, user_id, client, restart=False):
+def handle_start(args, user_id, client):
     if args:
         # There should be no arguments.
         return dm_unrecognized_command(user_id, client)
@@ -256,15 +267,16 @@ def handle_start(args, user_id, client, restart=False):
             f"You have an existing deployment with status: {current_deployment_status}.\nYou cannot start the next level yet. Please try again momentarily.",
         )
 
-    current_level = player_doc.get("current_level", 0)
-    next_level = current_level if restart else (current_level + 1)
-    if next_level > 5:
-        return dm_user(user_id, client, "You've already completed all the levels!")
+    current_level = player_doc.get("current_level", 1)
+    if current_level > MAX_LEVEL:
+        return dm_user(
+            user_id, client, "You've already completed all the challenges available!"
+        )
 
-    # Lookup the next level.
+    # Lookup the level.
     levels_collection = db.collection("levels")
-    # Should be ok to assume the next level exists.
-    level_doc = levels_collection.document(str(next_level)).get().to_dict()
+    # Should be ok to assume the level exists.
+    level_doc = levels_collection.document(str(current_level)).get().to_dict()
 
     # Make sure this level has started first!
     #    (except for admin players)
@@ -278,7 +290,7 @@ def handle_start(args, user_id, client, restart=False):
         return dm_user(
             user_id,
             client,
-            f"Level {next_level} doesn't start for another {hours}hr {minutes}min {seconds}s. :stopwatch:\nTake a break! :tropical_drink:",
+            f"Level {current_level} doesn't start for another {hours}hr {minutes}min {seconds}s. :stopwatch:\nTake a break! :tropical_drink:",
         )
 
     # Prepare the pub/sub message.
@@ -288,7 +300,7 @@ def handle_start(args, user_id, client, restart=False):
     message_data = {
         "action": "create",
         "player_id": player_id,
-        "level": next_level,
+        "level": current_level,
         "variables": {
             "encoded_admin_password": base64.b64encode(
                 admin_password.encode("utf-8")
@@ -298,6 +310,9 @@ def handle_start(args, user_id, client, restart=False):
             ).decode(),
         },
     }
+
+    dm_user(user_id, client, level_doc.get("description"))
+    dm_user(user_id, client, "Creating new level deployment ...")
 
     # Send the message.
     try:
@@ -315,8 +330,8 @@ def handle_start(args, user_id, client, restart=False):
             "deployment": {
                 "status": "pending",
             },
-            "current_level": next_level,
             "secret_flag": secret_flag,
+            "admin_password": admin_password,
         }
     )
 
@@ -327,12 +342,32 @@ def handle_start(args, user_id, client, restart=False):
     )
 
 
-def handle_restart(args, user_id, client):
-    if args:
-        # There should be no arguments.
-        return dm_unrecognized_command(user_id, client)
-
+def handle_destroy(args, user_id, client, force=False):
     player_id = user_id
+
+    if not force and player_id not in CTF_ADMIN_PLAYER_IDS:
+        # Force destory can only be done by an admin or part of other
+        # internal operations.
+        return dm_user(
+            user_id,
+            client,
+            "Sorry, only admins can run this command. Try `/ctf start` or `/ctf restart` instead!",
+        )
+
+    # If an argument is specified, the player should be an admin attempting
+    # to destroy a specific player deployment.
+    if args:
+        if player_id not in CTF_ADMIN_PLAYER_IDS:
+            # Admins can't do this.
+            return dm_unrecognized_command(user_id, client)
+
+        # Player is an admin. There should be exactly one arg.
+        if len(args) != 1:
+            return dm_unrecognized_command(user_id, client)
+
+        # The admin's argument specifies the player whose deployment to
+        # destroy.
+        player_id = args[0]
 
     # Get player document from firestore.
     players_collection = db.collection("players")
@@ -381,14 +416,88 @@ def handle_restart(args, user_id, client):
             break
         time.sleep(1)
 
+    dm_user(user_id, client, "Deployment destroyed! :boom:")
+
+
+def handle_restart(args, user_id, client):
+    if args:
+        # There should be no arguments.
+        return dm_unrecognized_command(user_id, client)
+
+    handle_destroy([], user_id, client, force=True)
+    handle_start([], user_id, client)
+
+
+def handle_capture(args, user_id, client):
+    if len(args) != 1:
+        # There should be exactly one arguments.
+        return dm_unrecognized_command(user_id, client)
+
+    flag = args[0]
+    player_id = user_id
+
+    # Get player document from firestore.
+    players_collection = db.collection("players")
+    player_doc = players_collection.document(player_id).get()
+
+    if not player_doc.exists:
+        return dm_user(user_id, client, "Please join first by entering `/ctf join`!")
+
+    player_doc = player_doc.to_dict()
+
+    deployment = player_doc.get("deployment", {})
+    deployment_status = deployment.get("status")
+
+    if deployment_status is None:
+        return dm_user(
+            user_id,
+            client,
+            "You don't have a current level deployment. Try `/ctf start` to deploy your next challenge!",
+        )
+
+    if flag != player_doc.get("secret_flag"):
+        return dm_user(
+            user_id, client, "Your flag value is inncorrect! :triangular_flag_on_post:"
+        )
+
+    current_level = player_doc.get("current_level")
+    next_level = current_level + 1
+
     dm_user(
-        user_id, client, "Deployment destroyed! :boom:\nCreating new deployment ..."
+        user_id,
+        client,
+        f"You've captured the level {current_level} flag! :checkered_flag:",
     )
-    handle_start([], user_id, client, restart=True)
+
+    # The user has captured the flag! Destroy their deployment.
+    handle_destroy([], user_id, client, force=True)
+
+    player_ref = db.collection("players").document(player_id)
+    level_ref = db.collection("levels").document(str(current_level))
+
+    # Update the user's level and append their ID to the level's standings.
+    transaction = db.transaction()
+    update_player_level(transaction, player_ref, level_ref)
+
+    if next_level > MAX_LEVEL:
+        return dm_user(user_id, client, "That's all the levels for now!")
+
+    return dm_user(user_id, client, "You can start the next level with `/ctf start`")
 
 
-def handle_capture(slack_user_id, flag):
-    pass
+@firestore.transactional
+def update_player_level(transaction, player_ref, level_ref):
+    player_doc = player_ref.get(transaction=transaction).to_dict()
+    level_doc = level_ref.get(transaction=transaction).to_dict()
+
+    player_id = player_doc.get("id")
+    standings = level_doc.get("standings")
+    # It shouldn't be possible, but add this check anyway.
+    if player_id not in standings:
+        standings.append(player_id)
+
+    transaction.update(level_ref, {"standings": standings})
+    transaction.update(player_ref, {"current_level": level_doc.get("id") + 1})
 
 
 flask_app = Flask("Middesk CTF Bot")

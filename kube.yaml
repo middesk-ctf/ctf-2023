@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: slack-app
-        image: us-central1-docker.pkg.dev/middesk-ctf-2023/ctf-bot/app:v0.6
+        image: us-central1-docker.pkg.dev/middesk-ctf-2023/ctf-bot/app:v0.9
         ports:
         - containerPort: 3000
         resources:
