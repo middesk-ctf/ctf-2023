@@ -1,4 +1,10 @@
+from datetime import datetime
+from dotenv import load_dotenv
 from google.cloud import firestore
+from slack_bolt import App
+
+load_dotenv(dotenv_path=".env.local")
+
 
 LEVEL_1_DESCRIPTION = """
 You're the newest employee at Pendesk, Inc., a reputable penetration testing and security consulting agency!
@@ -86,6 +92,45 @@ LEVEL_DESCRIPTIONS = {
 db = firestore.Client()
 levels_collection = db.collection("levels")
 
-for level_id, description in LEVEL_DESCRIPTIONS.items():
-    levels_collection.document(level_id).update({"description": description})
-    print(f"Updated description for level {level_id}")
+def update_descriptions():
+    for level_id, description in LEVEL_DESCRIPTIONS.items():
+        levels_collection.document(level_id).update({"description": description})
+        print(f"Updated description for level {level_id}")
+
+
+ENG_CHANNEL_ID = "CSTFHC97W"
+
+app = App()
+
+# Function to schedule a message
+def schedule_message(channel_id, message_text, post_time):
+    try:
+        # Schedule the message
+        result = app.client.chat_scheduleMessage(
+            channel=channel_id,
+            text=message_text,
+            post_at=post_time
+        )
+        print(f"Message scheduled: {result}")
+        return True
+    except Exception as e:
+        print(f"Error scheduling message: {e}")
+        return False
+
+
+def schedule_announcements():
+    levels_ref = db.collection('levels')
+    for doc in levels_ref.stream():
+        level_data = doc.to_dict()
+        already_scheduled = level_data.get('announcement_scheduled', False)
+        if not already_scheduled:
+            start_at = datetime.fromisoformat(level_data['start_at'])
+            message_text = f"Level {level_data['id']} of Middesk CTF 2023 is Starting Now! :cathack:"
+            was_scheduled = schedule_message(ENG_CHANNEL_ID, message_text, int(start_at.timestamp()))
+            if was_scheduled:
+                doc.reference.update({"announcement_scheduled": True})
+
+
+if __name__ == "__main__":
+    update_descriptions()
+    schedule_announcements()

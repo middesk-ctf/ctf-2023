@@ -180,6 +180,11 @@ def handle_join(args, user_id, client):
         }
     )
 
+    client.chat_postMessage(
+        channel="#eng",
+        text=f"<@{user_id}> has joined the CTF competition! :tada:"
+    )
+
     dm_user(
         user_id,
         client,
@@ -346,6 +351,11 @@ def handle_start(args, user_id, client):
         }
     )
 
+    client.chat_postMessage(
+        channel="#eng",
+        text=f"<@{user_id}> has started Level {current_level} of the CTF competition! :matrix:"
+    )
+
     return dm_user(
         user_id,
         client,
@@ -473,6 +483,11 @@ def handle_capture(args, user_id, client):
 
     current_level = player_doc.get("current_level")
     next_level = current_level + 1
+
+    client.chat_postMessage(
+        channel="#eng",
+        text=f"<@{user_id}> has Captured the Flag for Level {current_level}! :triangular_flag_on_post:"
+    )
 
     dm_user(
         user_id,
