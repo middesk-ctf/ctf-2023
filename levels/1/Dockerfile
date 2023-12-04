@@ -20,4 +20,4 @@ COPY ./app.py .
 EXPOSE 3000
 
 # Run app.py when the container launches
-CMD ["gunicorn", "-w", "25", "-b", ":3000", "app:app"]
+CMD ["gunicorn", "-w", "4", "-b", ":3000", "app:app"]
