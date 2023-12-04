@@ -15,16 +15,16 @@ def login():
             return redirect(url_for("list_files"))
         return render_template("login.html")
 
-    password = request.form.get("password").encode("utf-8")
+    password = request.form.get("password", "").encode("utf-8")
 
     # Haven't bothered implementing real password hashing yet but this
     # seems good enough.
     for i, char in enumerate(password):
         if i >= len(ADMIN_PASSWORD) or char != ADMIN_PASSWORD[i]:
+            # Password verification needs to be slow so that it's harder to
+            # brute force, so sleep for 100ms if a charecter is wrong.
+            time.sleep(0.1)
             return jsonify({"message": "Incorrect password"}), 401
-        # Password verification needs to be slow so that it's harder to
-        # brute force, so sleep for 100ms after each character is verified.
-        time.sleep(0.1)
 
     if len(password) < len(ADMIN_PASSWORD):
         return jsonify({"message": "Incorrect password"}), 401

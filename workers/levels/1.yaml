@@ -10,7 +10,7 @@ metadata:
   namespace: ${namespace}
   name: filedesk-app
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: filedesk-app
@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: filedesk-app
-        image: us-central1-docker.pkg.dev/middesk-ctf-2023/ctf-bot/level-1-app:v1.0
+        image: us-central1-docker.pkg.dev/middesk-ctf-2023/ctf-bot/level-1-app:v1.3
         ports:
         - containerPort: 3000
         resources:
