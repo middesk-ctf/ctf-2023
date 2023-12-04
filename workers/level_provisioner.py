@@ -78,6 +78,9 @@ def provision_level(cloud_event: CloudEvent) -> None:
             except Exception as e:
                 print(e)
             time.sleep(1)
+        else:
+            raise Exception(f"deployment never became ready: {app_url}")
+
         print(f"{app_url} is online!")
 
         player_doc.update({"deployment.status": "ready"})

@@ -17,6 +17,8 @@ load_dotenv(dotenv_path=".env.local")
 LOGLEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
 logging.basicConfig(level=LOGLEVEL)
 
+MAX_LEVEL = 2  # Set this to the number of levels currenty implemented.
+
 CTF_ADMIN_PLAYER_IDS = set(
     [
         "U01A8GBSEF5",  # Stewart Park
@@ -77,6 +79,13 @@ def make_secret_flag():
     return "FLAG" + encoded_bytes.decode("utf-8")
 
 
+# Session Secrets are used by Flask to sign session tokens.
+def make_session_secret():
+    # Generate 12 random bytes
+    encoded_bytes = base64.b64encode(os.urandom(24))
+    return encoded_bytes.decode("utf-8")
+
+
 # Listens to incoming messages that contain "ctf-bot"
 @app.message("ctf-bot")
 def hello_from_ctf_bot(message, say):
@@ -91,8 +100,6 @@ COMMANDS = [
     "restart",
     "capture FLAG",
 ]
-
-MAX_LEVEL = 1  # Set this to the number of levels currenty implemented.
 
 
 def ctf_usage():
@@ -296,6 +303,7 @@ def handle_start(args, user_id, client):
     # Prepare the pub/sub message.
     admin_password = make_admin_password()
     secret_flag = make_secret_flag()
+    session_secret = make_session_secret()
 
     message_data = {
         "action": "create",
@@ -307,6 +315,9 @@ def handle_start(args, user_id, client):
             ).decode(),
             "encoded_secret_flag": base64.b64encode(
                 secret_flag.encode("utf-8")
+            ).decode(),
+            "encoded_session_key": base64.b64encode(
+                session_secret.encode("utf-8")
             ).decode(),
         },
     }

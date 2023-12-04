@@ -4,6 +4,19 @@ kind: Namespace
 metadata:
   name: ${namespace}
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: ${namespace}
+  name: filedesk-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -21,9 +34,12 @@ spec:
     spec:
       containers:
       - name: filedesk-app
-        image: us-central1-docker.pkg.dev/middesk-ctf-2023/ctf-bot/level-1-app:v1.3
+        image: us-central1-docker.pkg.dev/middesk-ctf-2023/ctf-bot/level-2-app:v0.1
         ports:
         - containerPort: 3000
+        volumeMounts:
+        - name: data
+          mountPath: /data
         resources:
           requests:
             memory: 256Mi
@@ -36,6 +52,10 @@ spec:
             name: filedesk-app
         - secretRef:
             name: filedesk-app
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: filedesk-data
 ---
 apiVersion: v1
 kind: Service
@@ -58,6 +78,7 @@ metadata:
   name: filedesk-app
 data:
   LOGLEVEL: DEBUG
+  SQLALCHEMY_DATABASE_URI: "sqlite:////data/filedesk.db"
 ---
 apiVersion: v1
 kind: Secret
