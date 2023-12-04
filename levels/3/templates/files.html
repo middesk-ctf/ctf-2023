@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Filedesk | Files</title>
+</head>
+<body>
+    <h1>Filedesk</h1>
+    <button id="logout-button">Logout</button>
+    <h2>Files List</h2>
+    <ul>
+        {% for file_id, file_info in files.items() %}
+            <li>
+                <a href="{{ url_for('download_file', id=file_id) }}">{{ file_info['name'] }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+    <script>
+        // To handle the logout button click.
+        document.getElementById("logout-button").addEventListener("click", async function () {
+            const response = await fetch("/logout", {method: "POST"});
+
+            if (response.status === 200) {
+                // Redirect to root page after logout
+                window.location.href = "/";
+            } else {
+                console.error(`Logout failed with status ${response.status}`);
+            }
+        });
+    </script>
+</body>
+</html>

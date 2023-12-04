@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Filedesk | Login</title>
+</head>
+<body>
+  <h1>Filedesk</h1>
+  <h2>Login</h2>
+  <form method="POST">
+    <input type="text" id="username" placeholder="username" required>
+    <input type="password" id="password" placeholder="password" required>
+  </form>
+  <br />
+  <button id="login-button">Login</button>
+  <script>
+    document.getElementById("login-button").addEventListener("click", async (e) => {
+      const data = {
+        username: document.querySelector("#username").value,
+        password: document.querySelector("#password").value
+      }
+      
+      // Send a POST request to the /login endpoint
+      const response = await fetch("/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams(data).toString()
+      });
+  
+      if (response.status === 200) {
+        // Redirect to the profile page.
+        window.location.href = "/profile";
+      } else {
+        const data = await response.json();
+        // Display the error message to the user
+        alert(data.message);
+      }
+    });
+  </script>
+</body>
+</html>
