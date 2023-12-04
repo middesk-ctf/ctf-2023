@@ -73,7 +73,7 @@ def provision_level(cloud_event: CloudEvent) -> None:
         for i in range(300):
             print(f"[{i}/300] Waiting for {app_url} to come online...")
             try:
-                if requests.get(app_url).status_code < 400:
+                if requests.get(app_url, timeout=1).status_code < 400:
                     break
             except Exception as e:
                 print(e)
