@@ -90,7 +90,7 @@ Your rapid progress at Pendesk has not gone unnoticed! :chart_with_upwards_trend
 
 The Filedesk team has recently transitioned from using session cookies to JSON Web Tokens (JWTs) for authentication. These tokens are now stored in the browser's local storage and can be accessed via JavaScript. However, there's a catch: the JWT library they're using is alarmingly outdated, dating back to versions of the JWT specification from 2014.
 
-Your mission is to conduct a thorough examination of this JWT library. Look for any weaknesses or outdated practices that could be exploited. :eyes-intensifies: Remember, the Filedesk developers have been rather complacent about security; it seems the only way to make them acknowledge a vulnerability is by demonstrating it practically. This means your goal is to use any discovered vulnerabilities in the JWT implementation to access the now-familiar SECRET_FLAG.txt.
+Your mission is to conduct a thorough examination of this JWT library. Look for any weaknesses or outdated practices that could be exploited. :eyes-intensifies: Remember, the Filedesk developers have been rather complacent about security; it seems the only way to make them acknowledge a vulnerability is by demonstrating it practically. This means your goal is to use any discovered vulnerabilities in the JWT implementation to access the now-familiar `SECRET_FLAG.txt` which is usually only viewable by the `admin` user.
 
 As always, once you've successfully exploited the vulnerability and obtained the contents of the secret file, enter the command /ctf capture {SECRET_FLAG} to complete your task.
 

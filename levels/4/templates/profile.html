@@ -1,0 +1,47 @@
+{% extends "base_authenticated.html" %}
+
+{% block title %}Filedesk | Profile{% endblock %}
+{% block heading %}Filedesk{% endblock %}
+{% block subheading %}Profile{% endblock %}
+
+{% block content %}
+    <div id="profile"></div>
+    <script>
+        addEventListener("load", async function() {
+            var user;
+            try {
+                user = await api.getCurrentUser();
+            } catch (err) {
+                alert(err.message);
+                return;
+            }
+            document.title = `Filedesk | ${user.display_name}`;
+            document.getElementById("subheading").textContent = `Username: ${user.username}`;
+            
+            const profileElement = document.getElementById("profile");
+            profileElement.replaceChildren(
+                tag("h3", {
+                    children: [`Display Name: ${user.display_name}`],
+                }),
+                tag("a", {
+                    attrs: {"href": "/edit-profile"},
+                    children: [tag("button", {
+                        children: ["Edit Profile"],
+                    })],
+                }),
+            );
+
+            if (user.is_admin) {
+                profileElement.appendChild(
+                    tag("a", {
+                        attrs: {"href": "/files"},
+                        children: [tag("button", {
+                            children: ["View Files (Admins Only)"],
+                        })],
+                    }),
+                );
+            }
+        });
+    </script>
+{% endblock %}
+

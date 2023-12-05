@@ -1,0 +1,43 @@
+{% extends "base_authenticated.html" %}
+
+{% block title %}Filedesk | View File{% endblock %}
+{% block heading %}Filedesk{% endblock %}
+{% block subheading %}View File{% endblock %}
+
+{% block content %}
+    <hr />
+    <div id="file-content"></div>
+    <script>
+        addEventListener("load", async function() {
+            const wrapperElement = document.getElementById("file-content");
+
+            var user;
+            try {
+                user = await api.getCurrentUser();
+            } catch (err) {
+                alert(err.message);
+                return;
+            }
+
+            if (!user.is_admin) {
+                wrapperElement.appendChild(
+                    document.createTextNode("Viewing files is still only available to admin users!")
+                );
+                return;
+            }
+
+            var file;
+            try {
+                file = await api.getFile({{ file_id }});
+            } catch (err) {
+                alert(err.message);
+                return;
+            }
+
+            // Replaces newlines with <br> so multi-line files look good.
+            const formatted_content = file.content.replace(/\n/g, '<br>');
+
+            wrapperElement.innerHTML = formatted_content;
+        });
+    </script>
+{% endblock %}

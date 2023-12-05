@@ -1,0 +1,52 @@
+{% extends "base_authenticated.html" %}
+
+{% block title %}Filedesk | Files{% endblock %}
+{% block heading %}Filedesk{% endblock %}
+{% block subheading %}File List{% endblock %}
+
+{% block content %}
+    <div id="file-list"></div>
+    <script>
+        addEventListener("load", async function() {
+            const wrapperElement = document.getElementById("file-list");
+
+            var user;
+            try {
+                user = await api.getCurrentUser();
+            } catch (err) {
+                alert(err.message);
+                return;
+            }
+
+            if (!user.is_admin) {
+                wrapperElement.appendChild(
+                    document.createTextNode("Viewing files is still only available to admin users!")
+                );
+                return;
+            }
+
+            var resp;
+            try {
+                resp = await api.listFiles();
+            } catch (err) {
+                alert(err.message);
+                return;
+            }
+
+            wrapperElement.appendChild(
+                tag("ul", {
+                    children: resp.files.map(function(file) {
+                        return tag("li", {
+                            children: [
+                                tag("a", {
+                                    attrs: {"href": `/view-file/${file.id}`},
+                                    children: [file.filename],
+                                }),
+                            ],
+                        });
+                    }),
+                }),
+            );
+        });
+    </script>
+{% endblock %}
