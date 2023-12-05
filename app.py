@@ -17,7 +17,7 @@ load_dotenv(dotenv_path=".env.local")
 LOGLEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
 logging.basicConfig(level=LOGLEVEL)
 
-MAX_LEVEL = 2  # Set this to the number of levels currenty implemented.
+MAX_LEVEL = 3  # Set this to the number of levels currenty implemented.
 
 CTF_ADMIN_PLAYER_IDS = set(
     [
@@ -180,10 +180,10 @@ def handle_join(args, user_id, client):
         }
     )
 
-    client.chat_postMessage(
-        channel="#eng",
-        text=f"<@{user_id}> has joined the CTF competition! :tada:"
-    )
+    if user_id not in CTF_ADMIN_PLAYER_IDS:
+        client.chat_postMessage(
+            channel="#eng", text=f"<@{user_id}> has joined the CTF competition! :tada:"
+        )
 
     dm_user(
         user_id,
@@ -351,10 +351,11 @@ def handle_start(args, user_id, client):
         }
     )
 
-    client.chat_postMessage(
-        channel="#eng",
-        text=f"<@{user_id}> has started Level {current_level} of the CTF competition! :matrix:"
-    )
+    if user_id not in CTF_ADMIN_PLAYER_IDS:
+        client.chat_postMessage(
+            channel="#eng",
+            text=f"<@{user_id}> has started Level {current_level} of the CTF competition! :matrix:",
+        )
 
     return dm_user(
         user_id,
@@ -438,6 +439,7 @@ def handle_destroy(args, user_id, client, force=False):
         time.sleep(1)
 
     dm_user(user_id, client, "Deployment destroyed! :boom:")
+    return True
 
 
 def handle_restart(args, user_id, client):
@@ -445,8 +447,8 @@ def handle_restart(args, user_id, client):
         # There should be no arguments.
         return dm_unrecognized_command(user_id, client)
 
-    handle_destroy([], user_id, client, force=True)
-    handle_start([], user_id, client)
+    if handle_destroy([], user_id, client, force=True):
+        handle_start([], user_id, client)
 
 
 def handle_capture(args, user_id, client):
@@ -484,10 +486,11 @@ def handle_capture(args, user_id, client):
     current_level = player_doc.get("current_level")
     next_level = current_level + 1
 
-    client.chat_postMessage(
-        channel="#eng",
-        text=f"<@{user_id}> has Captured the Flag for Level {current_level}! :triangular_flag_on_post:"
-    )
+    if user_id not in CTF_ADMIN_PLAYER_IDS:
+        client.chat_postMessage(
+            channel="#eng",
+            text=f"<@{user_id}> has Captured the Flag for Level {current_level}! :triangular_flag_on_post:",
+        )
 
     dm_user(
         user_id,

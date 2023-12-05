@@ -11,10 +11,11 @@ COPY ./requirements.txt .
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the templates
+# Copy the templates and static files
 COPY ./templates ./templates
+COPY ./static ./static
 # Copy the app into the container at /usr/src/app
-COPY ./app.py ./init_app.py ./entrypoint.sh ./
+COPY ./app.py ./init_app.py ./jwt.py ./entrypoint.sh ./
 
 # Make port 3000 available to the world outside this container
 EXPOSE 3000

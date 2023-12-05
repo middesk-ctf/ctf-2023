@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block auth_logic %}
+    <script>
+        // If the auth token is present.
+        if (localStorage.getItem("token")) {
+            // Redirect to profile page.
+            window.location.href = "/profile";
+        }
+    </script>
+{% endblock %}

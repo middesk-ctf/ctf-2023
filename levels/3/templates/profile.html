@@ -1,31 +1,47 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Filedesk | Profile</title>
-</head>
-<body>
-    <div id="profile">
-        <h2>Username: {{ user.username }}</h2>
-        <button id="logout-button">Logout</button>
-        <h3>Display Name: {{ user.display_name }}</h3>
-        <a href="/edit-profile"><button>Edit Profile</button></a>
-        {% if user.is_admin %}
-            <a href="/files"><button>View Files (Admins Only)</button></a>
-        {% endif %}
-    </div>
-    <br />
-    <script>
-        // To handle the logout button click.
-        document.getElementById("logout-button").addEventListener("click", async function () {
-            const response = await fetch("/logout", {method: "POST"});
+{% extends "base_authenticated.html" %}
 
-            if (response.status === 200) {
-                // Redirect to root page after logout
-                window.location.href = "/";
-            } else {
-                console.error(`Logout failed with status ${response.status}`);
+{% block title %}Filedesk | Profile{% endblock %}
+{% block heading %}Filedesk{% endblock %}
+{% block subheading %}Profile{% endblock %}
+
+{% block content %}
+    <div id="profile"></div>
+    <script>
+        addEventListener("load", async function() {
+            var user;
+            try {
+                user = await api.getCurrentUser();
+            } catch (err) {
+                alert(err.message);
+                return;
+            }
+            document.title = `Filedesk | ${user.display_name}`;
+            document.getElementById("subheading").textContent = `Username: ${user.username}`;
+            
+            const profileElement = document.getElementById("profile");
+            profileElement.replaceChildren(
+                tag("h3", {
+                    children: [`Display Name: ${user.display_name}`],
+                }),
+                tag("a", {
+                    attrs: {"href": "/edit-profile"},
+                    children: [tag("button", {
+                        children: ["Edit Profile"],
+                    })],
+                }),
+            );
+
+            if (user.is_admin) {
+                profileElement.appendChild(
+                    tag("a", {
+                        attrs: {"href": "/files"},
+                        children: [tag("button", {
+                            children: ["View Files (Admins Only)"],
+                        })],
+                    }),
+                );
             }
         });
     </script>
-</body>
-</html>
+{% endblock %}
+

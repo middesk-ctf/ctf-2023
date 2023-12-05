@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from dotenv import load_dotenv
 from google.cloud import firestore
 from slack_bolt import App
@@ -84,13 +85,31 @@ except Exception as e:
 - *Your Task*: Identify and exploit the vulnerability to gain access to the secret file contents. Once you've got it, enter `/ctf capture {SECRET_FLAG}`.
 """
 
+LEVEL_3_DESCRIPTION = """
+Your rapid progress at Pendesk has not gone unnoticed! :chart_with_upwards_trend: In just a short time, you've demonstrated exceptional skill and resourcefulness. Recognizing your talent, your team entrusts you with leading the investigation into the next potential vulnerability in Filedesk's system.
+
+The Filedesk team has recently transitioned from using session cookies to JSON Web Tokens (JWTs) for authentication. These tokens are now stored in the browser's local storage and can be accessed via JavaScript. However, there's a catch: the JWT library they're using is alarmingly outdated, dating back to versions of the JWT specification from 2014.
+
+Your mission is to conduct a thorough examination of this JWT library. Look for any weaknesses or outdated practices that could be exploited. :eyes-intensifies: Remember, the Filedesk developers have been rather complacent about security; it seems the only way to make them acknowledge a vulnerability is by demonstrating it practically. This means your goal is to use any discovered vulnerabilities in the JWT implementation to access the now-familiar SECRET_FLAG.txt.
+
+As always, once you've successfully exploited the vulnerability and obtained the contents of the secret file, enter the command /ctf capture {SECRET_FLAG} to complete your task.
+
+Good luck, and happy hunting! :salute-face:
+
+Vulnerability: Potential flaws in the outdated JWT library that could be exploited for unauthorized access.
+Your Task: Examine the JWT library, identify and exploit any vulnerabilities to access the secret file. Once successful, submit the secret flag as before.
+Included with this challenge is <https://gist.github.com/jlhawn/03a99bf6991598d45e89202e18f2d117|a copy of the JWT library used by Filedesk>. Familiarize yourself with its code and functions as it could be the key to uncovering the security flaw.
+"""
+
 LEVEL_DESCRIPTIONS = {
     "1": LEVEL_1_DESCRIPTION.strip(),
     "2": LEVEL_2_DESCRIPTION.strip(),
+    "3": LEVEL_3_DESCRIPTION.strip(),
 }
 
 db = firestore.Client()
 levels_collection = db.collection("levels")
+
 
 def update_descriptions():
     for level_id, description in LEVEL_DESCRIPTIONS.items():
@@ -107,9 +126,7 @@ def schedule_message(channel_id, message_text, post_time):
     try:
         # Schedule the message
         result = app.client.chat_scheduleMessage(
-            channel=channel_id,
-            text=message_text,
-            post_at=post_time
+            channel=channel_id, text=message_text, post_at=post_time
         )
         print(f"Message scheduled: {result}")
         return True
@@ -119,14 +136,16 @@ def schedule_message(channel_id, message_text, post_time):
 
 
 def schedule_announcements():
-    levels_ref = db.collection('levels')
+    levels_ref = db.collection("levels")
     for doc in levels_ref.stream():
         level_data = doc.to_dict()
-        already_scheduled = level_data.get('announcement_scheduled', False)
+        already_scheduled = level_data.get("announcement_scheduled", False)
         if not already_scheduled:
-            start_at = datetime.fromisoformat(level_data['start_at'])
+            start_at = datetime.fromisoformat(level_data["start_at"])
             message_text = f"Level {level_data['id']} of Middesk CTF 2023 is Starting Now! :cathack:"
-            was_scheduled = schedule_message(ENG_CHANNEL_ID, message_text, int(start_at.timestamp()))
+            was_scheduled = schedule_message(
+                ENG_CHANNEL_ID, message_text, int(start_at.timestamp())
+            )
             if was_scheduled:
                 doc.reference.update({"announcement_scheduled": True})
 

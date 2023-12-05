@@ -1,41 +1,58 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Filedesk | Edit Profile</title>
-</head>
-<body>
-  <h1>Filedesk</h1>
-  <h2>Edit Profile</h2>
-  <form method="POST">
-    <label for="display-name">New Display Name:</label>
-    <input type="text" id="display-name" placeholder="New Display Name" name="display-name" required>
-  </form>
-  <br />
-  <button id="edit-button">Update</button>
-  <script>
-    document.getElementById("edit-button").addEventListener("click", async (e) => {
-      const data = {
-        display_name: document.querySelector("#display-name").value,
-      }
-      
-      // Send a POST request to the /profile endpoint
-      const response = await fetch("/profile", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams(data).toString()
-      });
-  
-      if (response.status === 200) {
-        // Redirect to the profile page.
-        window.location.href = "/profile";
-      } else {
-        const data = await response.json();
-        // Display the error message to the user
-        alert(data.message);
-      }
-    });
-  </script>
-</body>
-</html>
+{% extends "base_authenticated.html" %}
+
+{% block title %}Filedesk | Edit Profile{% endblock %}
+{% block heading %}Filedesk{% endblock %}
+{% block subheading %}Edit Profile{% endblock %}
+
+{% block content %}
+    <div id="profile"></div>
+    <script>
+        addEventListener("load", async function() {
+            var user;
+            try {
+                user = await api.getCurrentUser();
+            } catch (err) {
+                alert(err.message);
+                return;
+            }
+            
+            const profileElement = document.getElementById("profile");
+            profileElement.replaceChildren(
+                tag("div", {
+                    children: [
+                        tag("label", {
+                            attrs: {"for":"display-name"},
+                            children: ["New Display Name:"],
+                        }),
+                        tag("input", {
+                            attrs: {
+                                "id": "display-name",
+                                "type": "text",
+                                "placeholder": "New Display Name",
+                                "name": "display-name",
+                                "required": true,
+                            },
+                        }),
+                    ],
+                }),
+                tag("br"),
+                tag("button", {
+                    attrs: {"id": "edit-button"},
+                    children: ["Update"],
+                    eventListeners: {
+                        "click": async function() {
+                            const newDisplayName = document.getElementById("display-name").value;
+                            try {
+                                await api.updateDisplayName(newDisplayName);
+                            } catch (err) {
+                                alert(err.message);
+                            }
+                            // Redirect back to profile page.
+                            window.location.href = "/profile";
+                        },
+                    },
+                }),
+            );
+        });
+    </script>
+{% endblock %}

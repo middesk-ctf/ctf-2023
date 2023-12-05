@@ -1,31 +1,52 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Filedesk | Files</title>
-</head>
-<body>
-    <h1>Filedesk</h1>
-    <button id="logout-button">Logout</button>
-    <h2>Files List</h2>
-    <ul>
-        {% for file_id, file_info in files.items() %}
-            <li>
-                <a href="{{ url_for('download_file', id=file_id) }}">{{ file_info['name'] }}</a>
-            </li>
-        {% endfor %}
-    </ul>
-    <script>
-        // To handle the logout button click.
-        document.getElementById("logout-button").addEventListener("click", async function () {
-            const response = await fetch("/logout", {method: "POST"});
+{% extends "base_authenticated.html" %}
 
-            if (response.status === 200) {
-                // Redirect to root page after logout
-                window.location.href = "/";
-            } else {
-                console.error(`Logout failed with status ${response.status}`);
+{% block title %}Filedesk | Files{% endblock %}
+{% block heading %}Filedesk{% endblock %}
+{% block subheading %}File List{% endblock %}
+
+{% block content %}
+    <div id="file-list"></div>
+    <script>
+        addEventListener("load", async function() {
+            const wrapperElement = document.getElementById("file-list");
+
+            var user;
+            try {
+                user = await api.getCurrentUser();
+            } catch (err) {
+                alert(err.message);
+                return;
             }
+
+            if (!user.is_admin) {
+                wrapperElement.appendChild(
+                    document.createTextNode("Viewing files is still only available to admin users!")
+                );
+                return;
+            }
+
+            var resp;
+            try {
+                resp = await api.listFiles();
+            } catch (err) {
+                alert(err.message);
+                return;
+            }
+
+            wrapperElement.appendChild(
+                tag("ul", {
+                    children: resp.files.map(function(file) {
+                        return tag("li", {
+                            children: [
+                                tag("a", {
+                                    attrs: {"href": `/view-file/${file.id}`},
+                                    children: [file.filename],
+                                }),
+                            ],
+                        });
+                    }),
+                }),
+            );
         });
     </script>
-</body>
-</html>
+{% endblock %}
