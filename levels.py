@@ -92,7 +92,7 @@ The Filedesk team has recently transitioned from using session cookies to JSON W
 
 Your mission is to conduct a thorough examination of this JWT library. Look for any weaknesses or outdated practices that could be exploited. :eyes-intensifies: Remember, the Filedesk developers have been rather complacent about security; it seems the only way to make them acknowledge a vulnerability is by demonstrating it practically. This means your goal is to use any discovered vulnerabilities in the JWT implementation to access the now-familiar `SECRET_FLAG.txt` which is usually only viewable by the `admin` user.
 
-As always, once you've successfully exploited the vulnerability and obtained the contents of the secret file, enter the command /ctf capture {SECRET_FLAG} to complete your task.
+As always, once you've successfully exploited the vulnerability and obtained the contents of the secret file, enter the command `/ctf capture {SECRET_FLAG}` to complete your task.
 
 Good luck, and happy hunting! :salute-face:
 

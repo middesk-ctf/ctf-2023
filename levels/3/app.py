@@ -119,7 +119,6 @@ def create_token(user):
     expires_at = int(datetime.now(tz=timezone.utc).timestamp()) + (12 * 60 * 60)
     data = {
         "sub": user.username,
-        "is_admin": user.is_admin,
         "exp": expires_at,
     }
     return jwt.encode(data, app.secret_key)

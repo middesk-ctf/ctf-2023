@@ -21,4 +21,4 @@ COPY ./app.py ./init_app.py ./jwt.py ./entrypoint.sh ./
 EXPOSE 3000
 
 # Run app.py when the container launches
-CMD ["sh", "entrypoint.sh"]
+CMD ["entrypoint.sh"]
