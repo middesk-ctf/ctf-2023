@@ -4,7 +4,6 @@ from typing import Literal, Optional, TypedDict, Union
 
 import functions_framework
 import kr8s
-import requests
 import yaml
 from cloudevents.http import CloudEvent
 from google.cloud import firestore
@@ -77,20 +76,8 @@ def provision_level(cloud_event: CloudEvent) -> None:
             print(f"Deployments in namespace {namespace} are not yet ready")
             time.sleep(1)
 
-        # Wait until the service is actually running.
-        # Start by waiting at least 10 seconds.
+        # The deployment is ready, but give it a little extra time.
         time.sleep(10)
-        for i in range(300):
-            print(f"[{i}/300] Waiting for {app_url} to come online...")
-            try:
-                response = requests.get(app_url, timeout=1)
-                if response.status_code < 400:
-                    break
-            except Exception as e:
-                print(e)
-            time.sleep(1)
-        else:
-            raise Exception(f"deployment never became ready: {app_url}")
 
         print(f"{app_url} is online!")
 
@@ -99,7 +86,7 @@ def provision_level(cloud_event: CloudEvent) -> None:
         dm_user(
             player_id,
             slack,
-            f"🤖 Your challenge (Level {level}) is ready at {app_url} . 😈 Go crazy!",
+            f"🤖 Your challenge (Level {level}) deployment is ready at {app_url} . 😈 Go crazy!",
         )
     elif action == "destroy":
         player_doc.update({"deployment.status": "deleting"})

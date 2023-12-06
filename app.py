@@ -213,6 +213,7 @@ def handle_standings(args, user_id, client):
     levels_collection = db.collection("levels")
 
     if len(args) == 1:
+        # Standings for a specific level.
         level = args[0]
         level_doc = levels_collection.document(level).get()
 
@@ -230,6 +231,7 @@ def handle_standings(args, user_id, client):
         if ordered_player_points:
             message = f"Standings for Level {level}:"
     else:
+        # Standings for all levels.
         player_points = defaultdict(int)  # Maps player_id to points (default 0)
         for doc in levels_collection.list_documents():
             level_standings = doc.get().get("standings")
@@ -237,6 +239,13 @@ def handle_standings(args, user_id, client):
 
             for player_id, level_points in level_points:
                 player_points[player_id] += level_points
+        
+        # Include any bonus points.
+        for doc in db.collection("players").list_documents():
+            player = doc.get().to_dict()
+            player_id = player["id"]
+            if player_id in player_points:
+                player_points[player_id] += player.get('bonus_points', 0)
 
         ordered_player_points = sorted(
             player_points.items(),
