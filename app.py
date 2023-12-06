@@ -17,7 +17,7 @@ load_dotenv(dotenv_path=".env.local")
 LOGLEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
 logging.basicConfig(level=LOGLEVEL)
 
-MAX_LEVEL = 3  # Set this to the number of levels currenty implemented.
+MAX_LEVEL = 4  # Set this to the number of levels currenty implemented.
 
 CTF_ADMIN_PLAYER_IDS = set(
     [

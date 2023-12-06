@@ -101,10 +101,20 @@ Your Task: Examine the JWT library, identify and exploit any vulnerabilities to 
 Included with this challenge is <https://gist.github.com/jlhawn/03a99bf6991598d45e89202e18f2d117|a copy of the JWT library used by Filedesk>. Familiarize yourself with its code and functions as it could be the key to uncovering the security flaw.
 """
 
+LEVEL_4_DESCRIPTION = """
+TODO: Josh Hawn needs to fill this out. Something about how the web app now has the feature of allowing users to create and share their own files!
+"""
+
+LEVEL_5_DESCRIPTION = """
+TODO: Josh Hawn needs to fill this out. Something about how the Filedesk developers are fascinated with the Digital Signature Algorithm so they decided to implement it themselves.
+"""
+
 LEVEL_DESCRIPTIONS = {
     "1": LEVEL_1_DESCRIPTION.strip(),
     "2": LEVEL_2_DESCRIPTION.strip(),
     "3": LEVEL_3_DESCRIPTION.strip(),
+    "4": LEVEL_4_DESCRIPTION.strip(),
+    "5": LEVEL_5_DESCRIPTION.strip(),
 }
 
 db = firestore.Client()

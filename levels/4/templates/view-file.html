@@ -2,42 +2,44 @@
 
 {% block title %}Filedesk | View File{% endblock %}
 {% block heading %}Filedesk{% endblock %}
-{% block subheading %}View File{% endblock %}
+{% block subheading %}Viewing File{% endblock %}
 
 {% block content %}
+    <input id="file-id" type="hidden" value="{{ file_id }}" />
+    <h4 id="owned-by"></h4>
+    <div id="file-controls" hidden>
+        <a href="/file-sharing/{{ file_id }}"><button>File Sharing</button></a>
+        <button id="delete-button">Delete File</button>
+    </div>
     <hr />
-    <div id="file-content"></div>
+    <div id="file-content" style="width: 100%; height: 20em;"></div>
     <script>
-        addEventListener("load", async function() {
-            const wrapperElement = document.getElementById("file-content");
+    addEventListener("load", async function() {
+        const file_id = document.getElementById("file-id").value;
 
-            var user;
-            try {
-                user = await api.getCurrentUser();
-            } catch (err) {
-                alert(err.message);
-                return;
-            }
-
-            if (!user.is_admin) {
-                wrapperElement.appendChild(
-                    document.createTextNode("Viewing files is still only available to admin users!")
-                );
-                return;
-            }
-
-            var file;
-            try {
-                file = await api.getFile({{ file_id }});
-            } catch (err) {
-                alert(err.message);
-                return;
-            }
-
-            // Replaces newlines with <br> so multi-line files look good.
-            const formatted_content = file.content.replace(/\n/g, '<br>');
-
-            wrapperElement.innerHTML = formatted_content;
+        // Handle delete button click.
+        document.getElementById("delete-button").addEventListener("click", async function() {
+            await api.deleteFile(file_id);
+            // Redirect to files list.
+            window.location.href = "/files";
         });
+
+        const file = await api.getFile(file_id);
+
+        document.getElementById("subheading").innerHTML = `Viewing: ${file.filename}`;
+        document.getElementById("owned-by").innerHTML = `Owned By: ${file.owner.display_name} (${file.owner.username})`;
+
+        // Replaces newlines with <br> so multi-line files look nicer.
+        const formatted_content = file.content.replace(/\n/g, '<br>');
+
+        document.getElementById("file-content").innerHTML = formatted_content;
+
+        const user = await api.getCurrentUser();
+
+        if (file.owner.id === user.id) {
+            document.getElementById("owned-by").innerHTML = "Owned By: <i>You</i>";
+            document.getElementById("file-controls").hidden = false;
+        }
+    });
     </script>
 {% endblock %}

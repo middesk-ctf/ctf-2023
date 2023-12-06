@@ -16,9 +16,11 @@ const api = {
                 console.log(error.message);
                 return api.logout();
             }
-            throw new Error(error.message || 'An error occurred');
+            throw error;
         }
-        return response.json();
+        if (response.status !== 204) {
+            return response.json();
+        }
     },
 
     // Sign up
@@ -57,9 +59,9 @@ const api = {
     // NOTE: not async
     logout: function() {
         // Remove token from local storage
-        // and immediately redirect to login page.
+        // and immediately redirect to root page.
         window.localStorage.removeItem('token');
-        window.location.href = "/login";
+        window.location.href = "/";
     },
 
     // Get current user
@@ -81,13 +83,47 @@ const api = {
         return await api.fetchWithAuth('/v1/users');
     },
 
+    // Get user
+    getUser: async function(username) {
+        return await api.fetchWithAuth(`/v1/users/${username}`)
+    },
+
     // List files
     listFiles: async function() {
         return await api.fetchWithAuth('/v1/files');
     },
 
-    // Get file contents
+    // Create a file
+    createFile: async function(filename, content) {
+        return await api.fetchWithAuth('/v1/files', {
+            method: "POST",
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({filename, content})
+        });
+    },
+
+    // Get file with contents
     getFile: async function(file_id) {
         return await api.fetchWithAuth(`/v1/files/${file_id}`);
-    }
+    },
+
+    // Delete file
+    deleteFile: async function(file_id) {
+        return await api.fetchWithAuth(`/v1/files/${file_id}`, {method: "DELETE"});
+    },
+
+    // Get list of users which a file is shared with.
+    getFileShares: async function(file_id) {
+        return await api.fetchWithAuth(`/v1/files/${file_id}/shares`);
+    },
+
+    // Share a file with a user.
+    shareFile: async function(file_id, user_id) {
+        return await api.fetchWithAuth(`/v1/files/${file_id}/shares/${user_id}`, {method: "PUT"});
+    },
+
+    // Unshare a file with a user.
+    unshareFile: async function(file_id, user_id) {
+        return await api.fetchWithAuth(`/v1/files/${file_id}/shares/${user_id}`, {method: "DELETE"});
+    },
 };

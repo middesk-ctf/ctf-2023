@@ -1,0 +1,80 @@
+{% extends "base_authenticated.html" %}
+
+{% block title %}Filedesk | File Sharing{% endblock %}
+{% block heading %}Filedesk{% endblock %}
+{% block subheading %}File Sharing{% endblock %}
+
+{% block content %}
+    <input id="file-id" type="hidden" value="{{ file_id }}" />
+    <div>
+        <input id="recipient" type="text" placeholder="recipient_username" name="recipient" required />
+        <button id="share-button">Share File</button>
+    </div>
+    <div>
+        <h3>Currently Shared With:</h3>
+        <div id="shares-wrapper">
+            <i>You have yet to share this file with anyone!</i>
+        </div>
+    </div>
+    <script>
+    addEventListener("load", async function() {
+        const file_id = document.getElementById("file-id").value;
+
+        // Handle share button click.
+        document.getElementById("share-button").addEventListener("click", async function() {
+            const recipient_username = document.getElementById("recipient").value;
+            try {
+                const recipient = await api.getUser(recipient_username);
+                await api.shareFile(file_id, recipient.id);
+            } catch (err) {
+                alert(err.message);
+            }
+            // Reload the page.
+            window.location.reload();
+        });
+
+        // Fetch the file and user.
+        const file = await api.getFile(file_id);
+        const user = await api.getCurrentUser();
+
+        document.getElementById("subheading").innerHTML = `Sharing: ${file.filename}`;
+
+        // Ensure the user is the file owner.
+        // (might only have view access).
+        if (file.owner.id !== user.id) {
+            // Redirect to viewing file.
+            window.location.href = `/view-file/${file_id}`;
+            return;
+        }
+
+        const updateShares = function(shares) {
+            if (shares.length === 0) {
+                return;
+            }
+            const sharesWrapper = document.getElementById("shares-wrapper");
+            sharesWrapper.replaceChildren(
+                tag("ul", {
+                    children: shares.map(function({ id, username, display_name }){
+                        return tag("li", {children: [
+                            tag("button", {
+                                children: [`❌ ${display_name} (${username})`],
+                                eventListeners: {
+                                    "click": async function() {
+                                        await api.unshareFile(file_id, id);
+                                        window.location.reload();
+                                    },
+                                },
+                            }),
+                        ]});
+                    }),
+                }),
+            );
+        };
+
+        // Fetch list of users this file is shared with.
+        const { shares } = await api.getFileShares(file_id);
+
+        updateShares(shares);
+    });
+    </script>
+{% endblock %}

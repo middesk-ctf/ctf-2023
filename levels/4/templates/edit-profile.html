@@ -6,53 +6,22 @@
 
 {% block content %}
     <div id="profile"></div>
+        <div>
+            <label for="display-name">New Display Name:</label>
+            <input id="display-name" type="text" placeholder="New Display Name" name="display-name" required />
+            <br /><br />
+            <button id="update-button">Update</button>
+        </div>
     <script>
-        addEventListener("load", async function() {
-            var user;
-            try {
-                user = await api.getCurrentUser();
-            } catch (err) {
-                alert(err.message);
-                return;
-            }
-            
-            const profileElement = document.getElementById("profile");
-            profileElement.replaceChildren(
-                tag("div", {
-                    children: [
-                        tag("label", {
-                            attrs: {"for":"display-name"},
-                            children: ["New Display Name:"],
-                        }),
-                        tag("input", {
-                            attrs: {
-                                "id": "display-name",
-                                "type": "text",
-                                "placeholder": "New Display Name",
-                                "name": "display-name",
-                                "required": true,
-                            },
-                        }),
-                    ],
-                }),
-                tag("br"),
-                tag("button", {
-                    attrs: {"id": "edit-button"},
-                    children: ["Update"],
-                    eventListeners: {
-                        "click": async function() {
-                            const newDisplayName = document.getElementById("display-name").value;
-                            try {
-                                await api.updateDisplayName(newDisplayName);
-                            } catch (err) {
-                                alert(err.message);
-                            }
-                            // Redirect back to profile page.
-                            window.location.href = "/profile";
-                        },
-                    },
-                }),
-            );
-        });
+    document.getElementById("update-button").addEventListener("click", async function() {
+        const newDisplayName = document.getElementById("display-name").value;
+        try {
+            await api.updateDisplayName(newDisplayName);
+        } catch (err) {
+            alert(err.message);
+        }
+        // Redirect back to profile page.
+        window.location.href = "/profile";
+    });
     </script>
 {% endblock %}

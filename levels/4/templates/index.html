@@ -5,17 +5,6 @@
 {% block subheading %}File Storage and Sharing{% endblock %}
 
 {% block content %}
-    <button id="sign-up-button">Create an Account!</button>
-    <button id="login-button">Sign In</button>
-    <script>
-        // JavaScript to handle button clicks.
-        document.getElementById("sign-up-button")
-            .onclick = function () {
-                location.href = "/signup";
-            };
-        document.getElementById("login-button")
-            .onclick = function () {
-                location.href = "/login";
-            };
-    </script>
+    <a href="/signup"><button id="sign-up-button">Create an Account!</button></a>
+    <a href="/login"><button id="login-button">Sign In</button></a>
 {% endblock %}

@@ -9,9 +9,7 @@ import hashlib
 import hmac
 import json
 
-# JSON Web Signature spec requires these two algorithms.
-# https://datatracker.ietf.org/doc/html/draft-ietf-jose-json-web-algorithms-15#section-3.1
-
+# NOTE: The 'none' Algorithm is no longer supported by this library.
 
 # JWS HMAC With SHA-2 (HS256).
 # https://datatracker.ietf.org/doc/html/draft-ietf-jose-json-web-algorithms-15#section-3.2
@@ -32,25 +30,9 @@ class _AlgorithmHS256:
         return _constant_time_compare(signature, expected_signature)
 
 
-# The 'none' Algorithm.
-# https://datatracker.ietf.org/doc/html/draft-ietf-jose-json-web-algorithms-15#section-3.6
-class _AlgorithmNone:
-    NAME = "none"
-
-    @staticmethod
-    def sign(*_):
-        return ""
-
-    @staticmethod
-    def verify(*_):
-        return True
-
-
 def _get_alg(alg):
     if alg == _AlgorithmHS256.NAME:
         return _AlgorithmHS256
-    if alg == _AlgorithmNone.NAME:
-        return _AlgorithmNone
     raise ValueError("Unsupported algorithm")
 
 

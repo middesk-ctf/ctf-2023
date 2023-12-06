@@ -5,6 +5,7 @@ decorator==5.1.1
 executing==2.0.1
 Flask==3.0.0
 Flask-SQLAlchemy==3.1.1
+greenlet==3.0.1
 gunicorn==21.2.0
 ipython==8.18.1
 itsdangerous==2.1.2
@@ -15,9 +16,11 @@ matplotlib-inline==0.1.6
 packaging==23.2
 parso==0.8.3
 pexpect==4.9.0
+playwright==1.40.0
 prompt-toolkit==3.0.41
 ptyprocess==0.7.0
 pure-eval==0.2.2
+pyee==11.0.1
 Pygments==2.17.2
 PyJWT==2.8.0
 python-dotenv==1.0.0
