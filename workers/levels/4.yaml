@@ -34,7 +34,7 @@ spec:
     spec:
       containers:
       - name: filedesk-app
-        image: us-central1-docker.pkg.dev/middesk-ctf-2023/ctf-bot/level-4-app:v0.8
+        image: us-central1-docker.pkg.dev/middesk-ctf-2023/ctf-bot/level-4-app:v0.10
         ports:
         - containerPort: 3000
         volumeMounts:
@@ -53,7 +53,7 @@ spec:
         - secretRef:
             name: filedesk-app
       - name: filedesk-admin-monitor
-        image: us-central1-docker.pkg.dev/middesk-ctf-2023/ctf-bot/level-4-app:v0.8
+        image: us-central1-docker.pkg.dev/middesk-ctf-2023/ctf-bot/level-4-app:v0.10
         command: ["python"]
         args: ["worker.py"]
         resources:

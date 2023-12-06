@@ -537,7 +537,7 @@ def v1_file(id, auth_user):
     file = db.session.query(File).get(id)
 
     # Check that the file exists and that the user can access it.
-    if not (file or auth_user.is_file_viewer(file)):
+    if not (file and auth_user.is_file_viewer(file)):
         return jsonify({"message": "File Not Found"}), 404
 
     if request.method == "DELETE":
@@ -580,7 +580,7 @@ def v1_delete_file(file, auth_user):
 @require_auth_user
 def v1_file_shares(id, auth_user):
     file = File.query.get(id)
-    if not (file or auth_user.is_file_viewer(file)):
+    if not (file and auth_user.is_file_viewer(file)):
         return jsonify({"message": "File Not Found"}), 404
 
     if not auth_user.is_file_owner(file):
