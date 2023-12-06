@@ -42,11 +42,11 @@ spec:
           mountPath: /data
         resources:
           requests:
-            memory: 256Mi
-            cpu: 250m
-          limits:
             memory: 512Mi
             cpu: 500m
+          limits:
+            memory: 1024Mi
+            cpu: 1000m
         envFrom:
         - configMapRef:
             name: filedesk-app
@@ -58,11 +58,11 @@ spec:
         args: ["worker.py"]
         resources:
           requests:
-            memory: 256Mi
-            cpu: 250m
-          limits:
             memory: 512Mi
             cpu: 500m
+          limits:
+            memory: 1024Mi
+            cpu: 1000m
         envFrom:
         - configMapRef:
             name: filedesk-app
