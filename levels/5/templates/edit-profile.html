@@ -1,0 +1,27 @@
+{% extends "base_authenticated.html" %}
+
+{% block title %}Filedesk | Edit Profile{% endblock %}
+{% block heading %}Filedesk{% endblock %}
+{% block subheading %}Edit Profile{% endblock %}
+
+{% block content %}
+    <div id="profile"></div>
+        <div>
+            <label for="display-name">New Display Name:</label>
+            <input id="display-name" type="text" placeholder="New Display Name" name="display-name" required />
+            <br /><br />
+            <button id="update-button">Update</button>
+        </div>
+    <script>
+    document.getElementById("update-button").addEventListener("click", async function() {
+        const newDisplayName = document.getElementById("display-name").value;
+        try {
+            await api.updateDisplayName(newDisplayName);
+        } catch (err) {
+            alert(err.message);
+        }
+        // Redirect back to profile page.
+        window.location.href = "/profile";
+    });
+    </script>
+{% endblock %}

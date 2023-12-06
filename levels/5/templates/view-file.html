@@ -1,0 +1,44 @@
+{% extends "base_authenticated.html" %}
+
+{% block title %}Filedesk | View File{% endblock %}
+{% block heading %}Filedesk{% endblock %}
+{% block subheading %}Viewing File{% endblock %}
+
+{% block content %}
+    <input id="file-id" type="hidden" value="{{ file_id }}" />
+    <h4 id="owned-by"></h4>
+    <a href="/files">Back to All Files</a>
+    <br /><br />
+    <div id="file-controls" hidden>
+        <a href="/file-sharing/{{ file_id }}"><button>File Sharing</button></a>
+        <button id="delete-button">Delete File</button>
+    </div>
+    <hr />
+    <textarea id="file-content" style="width: 100%; height: 20em;" disabled></textarea>
+    <script>
+    addEventListener("load", async function() {
+        const file_id = document.getElementById("file-id").value;
+
+        // Handle delete button click.
+        document.getElementById("delete-button").addEventListener("click", async function() {
+            await api.deleteFile(file_id);
+            // Redirect to files list.
+            window.location.href = "/files";
+        });
+
+        const file = await api.getFile(file_id);
+
+        document.getElementById("subheading").innerHTML = `Viewing: ${file.filename}`;
+        document.getElementById("owned-by").innerHTML = `Owned By: ${file.owner.display_name} (${file.owner.username})`;
+
+        document.getElementById("file-content").value = file.content;
+
+        const user = await api.getCurrentUser();
+
+        if (file.owner.id === user.id) {
+            document.getElementById("owned-by").innerHTML = "Owned By: <i>You</i>";
+            document.getElementById("file-controls").hidden = false;
+        }
+    });
+    </script>
+{% endblock %}

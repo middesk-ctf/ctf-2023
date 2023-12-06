@@ -1,0 +1,28 @@
+{% extends "base_unauthenticated.html" %}
+
+{% block title %}Filedesk | Sign In{% endblock %}
+{% block heading %}Filedesk{% endblock %}
+{% block subheading %}Sign In{% endblock %}
+
+{% block content %}
+    <div>
+        <input id="username" type="text" placeholder="username" required>
+        <br /><br />
+        <input id="password" type="password" placeholder="password" required>
+        <br /><br />
+        <button id="login-button">Sign In</button>
+    </div>
+    <script>
+    document.getElementById("login-button").addEventListener("click", async function() {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+
+        try {
+            await api.login(username, password);
+            window.location.href = "/profile";
+        } catch (err) {
+            alert(err.message);
+        }
+    });
+    </script>
+{% endblock %}

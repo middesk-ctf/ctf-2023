@@ -1,0 +1,29 @@
+{% extends "base_authenticated.html" %}
+
+{% block title %}Filedesk | Add Profile{% endblock %}
+{% block heading %}Filedesk{% endblock %}
+{% block subheading %}Add File{% endblock %}
+
+{% block content %}
+    <div id="add-file" style="height: 100%;">
+        <label for="filename">Filename:</label>
+        <input id="filename" style="width: 30%;" type="text" placeholder="filename.txt" name="filename" required />
+        <br /><br />
+        <textarea id="file-content" style="width: 100%; height: 20em;" placeholder="content goes here"></textarea>
+        <br /><br />
+        <button id="create-button">Create File</button>
+    </div>
+    <script>
+    document.getElementById("create-button").addEventListener("click", async function() {
+        const filename = document.getElementById("filename").value;
+        const content = document.getElementById("file-content").value;
+
+        try {
+            const { id } = await api.createFile(filename, content)
+            window.location.href = `/view-file/${id}`;
+        } catch (err) {
+            alert(err.message);
+        }
+    });
+    </script>
+{% endblock %}

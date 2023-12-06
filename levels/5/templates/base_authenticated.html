@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block auth_logic %}
+    <button id="logout-button">Logout</button>
+    <script>
+        // Require that the auth token is present.
+        if (!localStorage.getItem("token")) {
+            // Redirect to root page.
+            window.location.href = "/";
+        }
+    </script>
+    <script>
+        // To handle the logout button click.
+        document.getElementById("logout-button")
+            .addEventListener("click", async function () {
+                api.logout();
+            });
+    </script>
+{% endblock %}

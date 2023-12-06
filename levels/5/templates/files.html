@@ -1,0 +1,71 @@
+{% extends "base_authenticated.html" %}
+
+{% block title %}Filedesk | Files{% endblock %}
+{% block heading %}Filedesk{% endblock %}
+{% block subheading %}Files{% endblock %}
+
+{% block content %}
+    <a href="/add-file"><button>Add File</button></a>
+    <div>
+        <h3>Files You Own</h3>
+        <div id="owned-wrapper">
+            <i>You have yet to own any files!</i>
+        </div>
+    </div>
+    <div>
+        <h3>Files Shared With You</h3>
+        <div id="received-wrapper">
+            <i>You have yet to receive any shared files!</i>
+        </div>
+    </div>
+    <script>
+        addEventListener("load", async function() {
+            const filesList = function(files) {
+                return tag("ul", {
+                    children: files.map(function(file) {
+                        return tag("li", {
+                            children: [
+                                tag("a", {
+                                    attrs: {"href": `/view-file/${file.id}`},
+                                    children: [file.filename],
+                                }),
+                            ],
+                        });
+                    }),
+                })
+            };
+
+            const updateOwnedFiles = function(files) {
+                if (files.length === 0) {
+                    return;
+                }
+
+                const ownedWrapper = document.getElementById("owned-wrapper");
+                ownedWrapper.replaceChildren(filesList(files));
+            };
+
+            const updateReceivedFiles = function(received_files) {
+                if (received_files.length === 0) {
+                    return;
+                }
+
+                const receivedWrapper = document.getElementById("received-wrapper");
+                receivedWrapper.replaceChildren(
+                    ...received_files.map(function({ owner, files }) {
+                        return tag("div", {
+                            children: [
+                                tag("h4", {children: [`Owned by ${owner.display_name} (${owner.username})`]}),
+                                filesList(files),
+                            ],
+                        });
+                    }),
+                );
+            };
+
+            const { owned_files, received_files } = await api.listFiles();
+
+            updateOwnedFiles(owned_files);
+            updateReceivedFiles(received_files);
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base_authenticated.html" %}
+
+{% block title %}Filedesk | Profile{% endblock %}
+{% block heading %}Filedesk{% endblock %}
+{% block subheading %}Profile{% endblock %}
+
+{% block content %}
+    <div id="profile">
+        <h3 id="display-name">Display Name: ...</h3>
+        <a href="/edit-profile"><button>Edit Profile</button></a>
+        <a href="/files"><button>View Files</button></a>
+    </div>
+    <script>
+    (async function() {
+        const user = await api.getCurrentUser();
+        document.title = `Filedesk | ${user.display_name}`;
+        document.getElementById("subheading").textContent = `Username: ${user.username}`;
+        document.getElementById("display-name").innerText = `Display name: ${user.display_name}`;
+    })();
+    </script>
+{% endblock %}
+

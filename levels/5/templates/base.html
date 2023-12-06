@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
+    <title>{% block title %}Filedesk{% endblock %}</title>
+    <script src="{{ url_for('static', filename='js/tag.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+</head>
+<body>
+    <h1 id="heading">{% block heading %}Filedesk{% endblock %}</h1>
+    {% block auth_logic %}{% endblock %}
+    <h2 id="subheading">{% block subheading %}File Storage and Sharing{% endblock %}</h2>
+    <div id="content">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
