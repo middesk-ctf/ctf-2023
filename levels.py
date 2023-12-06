@@ -102,7 +102,22 @@ Included with this challenge is <https://gist.github.com/jlhawn/03a99bf6991598d4
 """
 
 LEVEL_4_DESCRIPTION = """
-TODO: Josh Hawn needs to fill this out. Something about how the web app now has the feature of allowing users to create and share their own files!
+Welcome back, cyber sleuth! :sleuth_or_spy:
+
+After your recent exploits at Filedesk, Inc., the developers have finally unveiled their first version of file storage and sharing functionalities for all users! :tada:
+While they're a tad irked about the breach of their secret flag yesterday, the excitement over these new features overshadows their concerns. They've diligently patched the JWT library loophole but now need your sharp eyes on their latest feature additions.
+
+Today, your mission is to scrutinize the security of these new file creation and sharing features and they want you to try them out.
+Even the Filedesk `admin` user is eagerly refreshing their files list multiple times each minute :arrows_counterclockwise: to check out any new files shared with them.
+
+As you dive into the task, your colleague Xenia Sophia Serrano (cool initials btw), believes she's onto something. She thinks there could be vulnerabilities related to content sharing. She was close to cracking it but hasn't quite figured it out yet. :thinking_face:
+
+🎯 Your primary goal is to discover and exploit any vulnerability here that grants access to the `SECRET_FLAG.txt` file, which is under the `admin` user's ownership.
+
+_Suggestion_: The Filedesk team has implemented a plethora of API functionalities, accessible to JavaScript running in the browser. This is used extensively for their app logic and front-end rendering. A clever hacker might find these APIs (accessible through the "sources" tab of your browser's dev tools) quite handy!
+
+Once you've successfully breached the security and obtained the file, complete your mission by entering:
+   `/ctf capture {SECRET_FLAG}`.
 """
 
 LEVEL_5_DESCRIPTION = """

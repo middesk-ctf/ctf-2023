@@ -6,6 +6,10 @@
 
 {% block content %}
     <input id="file-id" type="hidden" value="{{ file_id }}" />
+    <a href="/files">Back to All Files</a>
+    <br /><br />
+    <a href="/view-file/{{ file_id }}">Back to Viewing File</a>
+    <br /><br />
     <div>
         <input id="recipient" type="text" placeholder="recipient_username" name="recipient" required />
         <button id="share-button">Share File</button>

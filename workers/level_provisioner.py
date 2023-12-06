@@ -3,14 +3,13 @@ import time
 from typing import Literal, Optional, TypedDict, Union
 
 import functions_framework
+import kr8s
 import requests
 import yaml
 from cloudevents.http import CloudEvent
 from google.cloud import firestore
 from kr8s.objects import Namespace, object_from_spec
 from mako.template import Template
-from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
 from util import dm_user, get_k8s, get_pubsub_json_payload, get_slack
 
 db = firestore.Client()
@@ -70,23 +69,25 @@ def provision_level(cloud_event: CloudEvent) -> None:
             except Exception as e:
                 print(e)
 
+        # Wait until all deployments are ready.
+        time.sleep(1)
+        for i in range(300):
+            if all([d.ready() for d in kr8s.get("deployments", namespace=namespace)]):
+                break
+            print(f"Deployments in namespace {namespace} are not yet ready")
+            time.sleep(1)
+
         # Wait until the service is actually running.
         time.sleep(1)
         for i in range(300):
-            with requests.Session() as session:
-                print(f"[{i}/300] Waiting for {app_url} to come online...")
-
-                retries = Retry(
-                    total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504]
-                )
-                session.mount("https://", HTTPAdapter(max_retries=retries))
-                try:
-                    response = session.get(app_url, timeout=5)
-                    if response.status_code < 400:
-                        break
-                except Exception as e:
-                    print(e)
-                time.sleep(1)
+            print(f"[{i}/300] Waiting for {app_url} to come online...")
+            try:
+                response = requests.get(app_url, timeout=5)
+                if response.status_code < 400:
+                    break
+            except Exception as e:
+                print(e)
+            time.sleep(1)
         else:
             raise Exception(f"deployment never became ready: {app_url}")
 

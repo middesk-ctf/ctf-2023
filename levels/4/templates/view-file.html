@@ -7,6 +7,8 @@
 {% block content %}
     <input id="file-id" type="hidden" value="{{ file_id }}" />
     <h4 id="owned-by"></h4>
+    <a href="/files">Back to All Files</a>
+    <br /><br />
     <div id="file-controls" hidden>
         <a href="/file-sharing/{{ file_id }}"><button>File Sharing</button></a>
         <button id="delete-button">Delete File</button>
