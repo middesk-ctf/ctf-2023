@@ -78,11 +78,12 @@ def provision_level(cloud_event: CloudEvent) -> None:
             time.sleep(1)
 
         # Wait until the service is actually running.
-        time.sleep(1)
+        # Start by waiting at least 10 seconds.
+        time.sleep(10)
         for i in range(300):
             print(f"[{i}/300] Waiting for {app_url} to come online...")
             try:
-                response = requests.get(app_url, timeout=5)
+                response = requests.get(app_url, timeout=1)
                 if response.status_code < 400:
                     break
             except Exception as e:
