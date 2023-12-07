@@ -17,7 +17,10 @@ load_dotenv(dotenv_path=".env.local")
 LOGLEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
 logging.basicConfig(level=LOGLEVEL)
 
-MAX_LEVEL = 4  # Set this to the number of levels currenty implemented.
+MAX_LEVEL = 5  # Set this to the number of levels currenty implemented.
+
+# Set this to the final level for a special message when it is completed.
+FINAL_LEVEL = 5
 
 CTF_ADMIN_PLAYER_IDS = set(
     [
@@ -68,22 +71,22 @@ def dm_user_error(user_id, client):
 def make_admin_password():
     # Generate 6 random bytes
     encoded_bytes = base64.b64encode(os.urandom(6))
-    return "ctf" + encoded_bytes.decode("utf-8")
+    return "ctf" + encoded_bytes.decode()
 
 
-# Secret Flags always start with 'FLAG' and containe any of the following
+# Secret Flags always start with 'FLAG' and contain any of the following
 # characters: A-Z, a-z, 0-9, `+`, and `/`.
 def make_secret_flag():
     # Generate 24 random bytes.
     encoded_bytes = base64.b64encode(os.urandom(24))
-    return "FLAG" + encoded_bytes.decode("utf-8")
+    return "FLAG" + encoded_bytes.decode()
 
 
 # Session Secrets are used by Flask to sign session tokens.
 def make_session_secret():
     # Generate 12 random bytes
     encoded_bytes = base64.b64encode(os.urandom(24))
-    return encoded_bytes.decode("utf-8")
+    return encoded_bytes.decode()
 
 
 # Listens to incoming messages that contain "ctf-bot"
@@ -239,13 +242,13 @@ def handle_standings(args, user_id, client):
 
             for player_id, level_points in level_points:
                 player_points[player_id] += level_points
-        
+
         # Include any bonus points.
         for doc in db.collection("players").list_documents():
             player = doc.get().to_dict()
             player_id = player["id"]
             if player_id in player_points:
-                player_points[player_id] += player.get('bonus_points', 0)
+                player_points[player_id] += player.get("bonus_points", 0)
 
         ordered_player_points = sorted(
             player_points.items(),
@@ -325,14 +328,10 @@ def handle_start(args, user_id, client):
         "level": current_level,
         "variables": {
             "encoded_admin_password": base64.b64encode(
-                admin_password.encode("utf-8")
+                admin_password.encode()
             ).decode(),
-            "encoded_secret_flag": base64.b64encode(
-                secret_flag.encode("utf-8")
-            ).decode(),
-            "encoded_session_key": base64.b64encode(
-                session_secret.encode("utf-8")
-            ).decode(),
+            "encoded_secret_flag": base64.b64encode(secret_flag.encode()).decode(),
+            "encoded_session_key": base64.b64encode(session_secret.encode()).decode(),
         },
     }
 
@@ -341,7 +340,7 @@ def handle_start(args, user_id, client):
 
     # Send the message.
     try:
-        message = json.dumps(message_data).encode("utf-8")
+        message = json.dumps(message_data).encode()
         # Block until the message is published, returning the message ID.
         message_id = publisher.publish(topic_path, message).result()
         print(f"Message published with ID: {message_id}")
@@ -428,7 +427,7 @@ def handle_destroy(args, user_id, client, force=False):
 
     # Send the message.
     try:
-        message = json.dumps(message_data).encode("utf-8")
+        message = json.dumps(message_data).encode()
         # Block until the message is published, returning the message ID.
         message_id = publisher.publish(topic_path, message).result()
         print(f"Message published with ID: {message_id}")
@@ -516,6 +515,13 @@ def handle_capture(args, user_id, client):
     # Update the user's level and append their ID to the level's standings.
     transaction = db.transaction()
     update_player_level(transaction, player_ref, level_ref)
+
+    if current_level == FINAL_LEVEL:
+        return dm_user(
+            user_id,
+            client,
+            ":confetti_ball: That was the FINAL LEVEL! :confetti_ball:\nCongratulations! :partying_face:\nYou are a L33T HAX0R :cathack:",
+        )
 
     if next_level > MAX_LEVEL:
         return dm_user(user_id, client, "That's all the levels for now!")

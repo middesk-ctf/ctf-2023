@@ -41,7 +41,7 @@ def is_valid_filename(filename):
     return re.match(FILENAME_PATTERN, filename) is not None
 
 
-app = Flask("Middesk CTF Level 3")
+app = Flask("Middesk CTF Level 4")
 app.secret_key = os.environ.get("SESSION_KEY", "session_secret")
 
 app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI

@@ -41,8 +41,7 @@ def is_valid_filename(filename):
     return re.match(FILENAME_PATTERN, filename) is not None
 
 
-app = Flask("Middesk CTF Level 3")
-app.secret_key = os.environ.get("SESSION_KEY", "session_secret")
+app = Flask("Middesk CTF Level 5")
 
 app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -212,26 +211,32 @@ def require_admin(f):
     return decorated_function
 
 
-def get_auth_user(token):
-    data = jwt.decode(token, app.secret_key)
+# Note: Session Key must be 32 bytes or the JWT signing key cannot load.
+SESSION_KEY = os.environ.get("SESSION_KEY", "supersecuretokensupersecuretoken")
+token_signing_key = jwt.SigningKeyES256(SESSION_KEY.encode())
 
-    expires_at = data.get("exp", 0)
+
+def get_auth_user(token):
+    claimset = token_signing_key.decode(token)
+
+    expires_at = claimset.get("exp", 0)
     now = datetime.now(tz=timezone.utc).timestamp()
     if expires_at <= now:
         raise ValueError("token expired")
 
-    username = data.get("sub", "")
+    username = claimset.get("sub", "")
     return get_user_from_db(username)
 
 
 def create_token(user):
     # expires 12 hours from now.
     expires_at = int(datetime.now(tz=timezone.utc).timestamp()) + (12 * 60 * 60)
-    data = {
+    claimset = {
         "sub": user.username,
         "exp": expires_at,
     }
-    return jwt.encode(data, app.secret_key)
+
+    return token_signing_key.encode(claimset)
 
 
 def get_auth_token():

@@ -1,0 +1,92 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ${namespace}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: ${namespace}
+  name: filedesk-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: ${namespace}
+  name: filedesk-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: filedesk-app
+  template:
+    metadata:
+      labels:
+        app: filedesk-app
+    spec:
+      containers:
+      - name: filedesk-app
+        image: us-central1-docker.pkg.dev/middesk-ctf-2023/ctf-bot/level-5-app:v0.2
+        ports:
+        - containerPort: 3000
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        resources:
+          requests:
+            memory: 256Mi
+            cpu: 250m
+          limits:
+            memory: 512Mi
+            cpu: 500m
+        envFrom:
+        - configMapRef:
+            name: filedesk-app
+        - secretRef:
+            name: filedesk-app
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: filedesk-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: ${namespace}
+  name: app
+spec:
+  selector:
+    app: filedesk-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: NodePort
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: ${namespace}
+  name: filedesk-app
+data:
+  LOGLEVEL: DEBUG
+  SQLALCHEMY_DATABASE_URI: "sqlite:////data/filedesk.db"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: ${namespace}
+  name: filedesk-app
+type: Opaque
+data:
+  ADMIN_PASSWORD: ${encoded_admin_password}
+  SECRET_FLAG: ${encoded_secret_flag}
+  SESSION_KEY: ${encoded_session_key}

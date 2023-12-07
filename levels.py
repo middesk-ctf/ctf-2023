@@ -121,7 +121,18 @@ Once you've successfully breached the security and obtained the file, complete y
 """
 
 LEVEL_5_DESCRIPTION = """
-TODO: Josh Hawn needs to fill this out. Something about how the Filedesk developers are fascinated with the Digital Signature Algorithm so they decided to implement it themselves.
+After your recent triumph :triumph: in uncovering the (now patched) XSS vulnerability, the developers at Filedesk, still reeling from the vulnerabilities you exposed in their old JWT library, have now rolled out a custom JSON Web Token (JWT) library, with a particular focus on their Elliptic Curve Digital Signature Algorithm (ECDSA) Signing Key implementation which they’re now using for signing session tokens. :hammer_and_wrench: 
+
+However, whispers in the cryptographic corridors at Pendesk suggest there may be a critical flaw in their new ES256 signing key implementation. The Filedesk team, still riding high on their coding marathon, challenges the notion, confident that their cryptographic skills are top-notch. :lock: 
+
+You’ve been given the task to dive into the cryptographic depths of Filedesk’s latest security measures. :dart: Your objective is to uncover and exploit any critical vulnerability in their ECDSA Signing Key implementation, and once again gain unauthorized access to the legendary `SECRET_FLAG.txt` file. :file_folder:
+
+Equipped with <https://gist.github.com/jlhawn/4a13c5622631f216c6d7a7cd5e9883cc|a copy of Filedesk’s new JWT library> :page_facing_up:, you stand at the threshold of what could be your most challenging and enlightening adventure yet at Pendesk. :female-detective:
+
+Once you’ve deciphered the code and seized the secret file, complete your cryptographic conquest by entering:
+`/ctf capture {SECRET_FLAG}.`
+
+Gear up for a journey where every detail could be the key to unlocking the mystery. Good luck, and may your crypto-skills shine bright! :tophat::sparkles:
 """
 
 LEVEL_DESCRIPTIONS = {
