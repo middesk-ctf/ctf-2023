@@ -6,17 +6,17 @@
 
 {% block content %}
     <input id="file-id" type="hidden" value="{{ file_id }}" />
-    <a href="/files">Back to All Files</a>
-    <br /><br />
-    <a href="/view-file/{{ file_id }}">Back to Viewing File</a>
-    <br /><br />
-    <div>
+    <div class="section-header">
+        <a href="/files">Back to All Files</a>
+        <a href="/view-file/{{ file_id }}">Back to Viewing File</a>
+    </div>
+    <div id="sharing-controls" class="section-container">
         <input id="recipient" type="text" placeholder="recipient_username" name="recipient" required />
         <button id="share-button">Share File</button>
     </div>
-    <div>
+    <div id="shares-container" class="section-container">
         <h3>Currently Shared With:</h3>
-        <div id="shares-wrapper">
+        <div id="shares-wrapper" class="section-wrapper">
             <i>You have yet to share this file with anyone!</i>
         </div>
     </div>
@@ -61,6 +61,7 @@
                     children: shares.map(function({ id, username, display_name }){
                         return tag("li", {children: [
                             tag("button", {
+                                attrs: { "class": "delete-share-button" },
                                 children: [`❌ ${display_name} (${username})`],
                                 eventListeners: {
                                     "click": async function() {

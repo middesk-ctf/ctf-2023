@@ -1,0 +1,86 @@
+/* Add or update this in your CSS file at /static/css/style.css */
+
+body {
+    text-align: center; /* Center text for the whole body */
+    font-family: Arial, sans-serif; /* Optional: Set a default font */
+    background-color: #f2f2f2; /* Light grey background */
+}
+
+#header-container {
+    display: flex; /* Enables Flexbox */
+    justify-content: space-between; /* Aligns items to the start and end of the container */
+    align-items: center; /* Centers items vertically */
+    max-width: 1000px; /* Set maximum width */
+    margin: 0 auto; /* Horizontally center the container */
+    padding: 10px; /* Adds some padding around the content */
+}
+
+#heading, #subheading {
+    /* Centering the heading and subheading */
+    margin: 0;
+}
+
+#content-container {
+    max-width: 1000px; /* Set maximum width */
+    margin: 0 auto; /* Horizontally center the content */
+    padding: 20px; /* Optional: Adds internal spacing */
+    background-color: white; /* Optional: Sets a white background for the content area */
+    box-shadow: 0 0 10px rgba(0,0,0,0.1); /* Optional: Adds a subtle shadow for depth */
+}
+
+button {
+    padding: 10px 20px; /* Adds padding inside the buttons */
+    margin: 10px; /* Adds spacing between buttons */
+    border: none; /* Removes the default border */
+    border-radius: 5px; /* Optional: Rounds the corners */
+    background-color: #007bff; /* Button color */
+    color: white; /* Text color */
+    cursor: pointer; /* Changes cursor to indicate it's clickable */
+    font-size: 16px; /* Adjust the font size */
+}
+
+button:hover {
+    background-color: #0056b3; /* Color change on hover */
+}
+
+.section-header {
+    display: flex; /* Enables Flexbox */
+    justify-content: space-between; /* Places items on opposite ends */
+    align-items: center; /* Aligns items vertically */
+    padding: 0;
+    margin: 0;
+}
+
+#logout-button, #add-file-button {
+    margin: 0;
+}
+
+.section-container {
+    text-align: left; /* Left aligns the text and content */
+    margin: 0 0 20px; /* Adds margin above and below the containers */
+}
+
+h3 {
+    margin: 0 0 10px;
+}
+
+h4 {
+    margin: 0 0 5px;
+}
+
+.section-wrapper {
+    margin: 0 0 0 20px;
+    /* padding-left: 20px; Adds padding to the left for inner content, useful if you use lists */
+}
+
+.section-wrapper ul {
+    margin: 0;
+}
+
+.subsection-wrapper {
+    margin-bottom: 10px;
+}
+
+.delete-share-button {
+    margin: 0 0 2px;
+}

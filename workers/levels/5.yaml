@@ -34,7 +34,7 @@ spec:
     spec:
       containers:
       - name: filedesk-app
-        image: us-central1-docker.pkg.dev/middesk-ctf-2023/ctf-bot/level-5-app:v0.2
+        image: us-central1-docker.pkg.dev/middesk-ctf-2023/ctf-bot/level-5-app:v0.3
         ports:
         - containerPort: 3000
         volumeMounts:
